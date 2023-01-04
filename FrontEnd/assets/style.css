@@ -46,12 +46,27 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+a {
+	text-decoration: none;
+	color: #000000;
+	font-size: 16px;
+	font-weight: 400;
+}
+a:hover {
+	color: #B1663C
+}
+a:active {
+	color: #B1663C
+}
 /** end reset css**/
 body {
 	max-width: 1140px;
 	margin:auto;
 	font-family: 'Work Sans' ;
 	font-size: 14px;
+}
+.body--isLogged {
+	padding-top: 50px;
 }
 header {
 	display: flex;
@@ -94,9 +109,13 @@ nav li {
 	padding: 0 10px;
 	font-size: 1.2em;
 }
+.link--active {
+	font-weight: 600;
+}
 
 li:hover {
 	color: #B1663C;
+	cursor: pointer;
 }
 #introduction {
 	display: flex;
@@ -194,6 +213,69 @@ input[type="submit"]{
 footer nav ul {
 	display: flex;
 	justify-content: flex-end;
-	margin: 2em
+	margin: 2em;
 }
 
+.login {
+	margin: 10rem auto !important;
+}
+.login__label,
+.login__nopassword {
+	color: #3D3D3D;
+	font-size: 14px;
+	font-weight: 500;
+}
+#loginInfo {
+	background-color: rgba(241, 22, 52, 0.7);
+	color: white;
+	text-align: center;
+	padding: 0.5em;
+	border-radius: 5px;
+	margin-top: 16px;
+	opacity: 0;
+}
+.login__info--active {
+	opacity: 1!important;
+}
+.login__btn:hover {
+	cursor: pointer;
+}
+.login__nopassword {
+	text-align: center;
+}
+
+#dashboard, .dashboard {
+	height: 60px;
+	background-color: #000000;
+	color: #ffffff;
+	font-size: 16px;
+	font-weight: 400;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	position: fixed;
+	left: 0;
+	top: 0;
+
+	z-index: 2000;
+
+	width: 100%;
+}
+#dashboard .dashboard__button {
+	margin: 0 1em;
+	border-radius: 60px;
+	cursor: pointer;
+}
+#dashboard .dashboard__button--1 > .fa-solid {
+	margin-right: 10px;
+}
+#dashboard .dashboard__button--2 {
+	padding: 0.6em 0.8em;
+	background-color: #ffffff;
+	color: #000000;
+}
+.dashboard--disabled {
+	display: none !important;
+}

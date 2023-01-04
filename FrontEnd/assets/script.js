@@ -1,195 +1,63 @@
 const api = "http://localhost:5678/api";
 
-const categoriesEl = document.querySelector(".categories");
-const galleryEl = document.querySelector(".gallery");
+const loginBtnEl = document.querySelector("#loginBtn");
+const dashboard = document.querySelector('#dashboard')
 
-addWorks(galleryEl);
-addCategories(categoriesEl);
-
-/**
- *
- * @param {any[]} works
- * @param {Element} divParent
- */
-function worksFiltered(works, divParent) {
-  works.forEach((work) => {
-    const { title, imageUrl, categoryId } = work;
-
-    const card = createCard(title, imageUrl, categoryId);
-
-    divParent.appendChild(card);
-  });
-
-  let indexCate = 0;
-
-  categoriesEl.addEventListener("click", (e) => {
-    e.preventDefault();
-
-    const targetCateId = Number(e.target.getAttribute("data-category-id"));
-
-    if (targetCateId === indexCate) return;
-
-    const removeCards = document.querySelectorAll(`figure[data-category-id]`);
-
-    removeCards.forEach((card) => {
-      card.remove();
-    });
-
-    works
-      .filter((work) => targetCateId == 0 || targetCateId == work.categoryId)
-      .forEach((workFiltered) => {
-        const { title, imageUrl, categoryId } = workFiltered;
-
-        const card = createCard(title, imageUrl, categoryId);
-
-        divParent.appendChild(card);
-      });
-
-    indexCate = targetCateId;
-  });
+if (isUserLogged()) {
+  document.body.className = "body--isLogged";
+  dashboard.className = ""
+  loginBtnEl.innerHTML = "logout";
+} else {
+  document.body.className = "";
+  dashboard.className = "dashboard--disabled"
+  loginBtnEl.innerHTML = "login";
 }
 
-/**
- *
- * @param {Element} divParent
- */
-async function addCategories(divParent) {
-  try {
-    const categories = await getCategories();
+loginBtnEl.addEventListener("click", (e) => {
+  e.preventDefault();
 
-    divParent.appendChild(createInputSubmit(0, "Tous"));
-
-    categories.forEach((category) => {
-      const { id, name } = category;
-
-      const input = createInputSubmit(id, name);
-
-      divParent.appendChild(input);
-    });
-  } catch (error) {
-    catchError(error);
+  if (isUserLogged()) {
+    sessionStorage.removeItem("user");
+    location.reload();
+  } else {
+    useLocation("./login.html");
   }
-}
+});
 
-/**
- *
- * @param {Element} divParent
- */
-async function addWorks(divParent) {
-  try {
-    const works = await getWorks();
+async function postFetch(path, userData) {
+  const init = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json;charset=utf-8",
+    },
+    body: JSON.stringify(userData),
+  };
 
-    worksFiltered(works, divParent);
-  } catch (error) {
-    catchError(error);
-  }
-}
+  const response = await fetch(`${api}/${removeSlash(path)}`, init);
 
-/**
- *
- * @returns any[]
- */
-async function getCategories() {
-  const categories = await getFetch("categories");
-
-  return categories;
-}
-
-/**
- *
- * @returns any[]
- */
-async function getWorks() {
-  const works = await getFetch(`works`);
-
-  return works;
-}
-
-/**
- *
- * @param {string} path
- * @returns any[]
- */
-async function getFetch(path) {
-  const newPath = path.charAt(0) === "/" ? path.substring(1) : path;
-
-  const response = await fetch(`${api}/${newPath}`);
-
-  if (!response.ok) throw new Error("api error");
+  if (!response.ok) throw new Error(response.statusText);
 
   const data = await response.json();
 
   return data;
 }
 
-/**
- *
- * @param {number} id
- * @param {string} name
- * @returns HTMLInputElement
- */
-function createInputSubmit(id, name) {
-  const inputAttribute = {
-    type: "submit",
-    value: name,
-    "data-category-id": id,
-  };
+async function getFetch(path) {
+  const response = await fetch(`${api}/${removeSlash(path)}`);
 
-  const input = document.createElement("input");
+  if (!response.ok) throw new Error(response.statusText);
 
-  setAttributes(input, inputAttribute);
+  const data = await response.json();
 
-  return input;
+  return data;
 }
 
-/**
- *
- * @param {string} title
- * @param {string} imageUrl
- * @param {number} categoryId
- * @returns Element
- */
-function createCard(title, imageUrl, categoryId) {
-  const imgAttributes = {
-    crossorigin: "anonymous",
-    src: imageUrl,
-    alt: title,
-  };
-
-  const [img, figcaption, figure] = createElements(
-    "img",
-    "figcaption",
-    "figure"
-  );
-
-  setAttributes(img, imgAttributes);
-
-  figcaption.innerText = title;
-
-  figure.setAttribute("data-category-id", categoryId);
-
-  figure.appendChild(img);
-  figure.appendChild(figcaption);
-
-  return figure;
-}
-
-/**
- *
- * @param {Element} element
- * @param {*} attributesObject
- */
 function setAttributes(element, attributesObject) {
   Object.keys(attributesObject).forEach((attribute) => {
     element.setAttribute(attribute, attributesObject[attribute]);
   });
 }
 
-/**
- *
- * @param  {...any} tagsName
- * @returns Element[]
- */
 function createElements(...tagsName) {
   const elements = [];
   for (let i = 0; i < tagsName.length; i++) {
@@ -201,14 +69,30 @@ function createElements(...tagsName) {
   return elements;
 }
 
-/**
- *
- * @param {Error} error
- */
 function catchError(error) {
   if (error instanceof Error) {
     console.warn(error.message);
   } else {
     console.error(error);
   }
+}
+
+function removeSlash(path) {
+  const newPath = path.charAt(0) === "/" ? path.substring(1) : path;
+
+  return newPath;
+}
+
+function getUserLoginSessionStorage() {
+  const userData = JSON.parse(sessionStorage.getItem("user"));
+
+  return userData;
+}
+
+function isUserLogged() {
+  return getUserLoginSessionStorage()?.isLogged ? true : false;
+}
+
+function useLocation(path) {
+  window.location.href = path;
 }
