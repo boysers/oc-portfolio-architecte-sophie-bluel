@@ -1,5 +1,27 @@
+const state = {
+  works: [],
+  categories: [],
+};
+
 const categoriesEl = document.querySelector(".categories");
 const galleryEl = document.querySelector(".gallery");
+const dashboard = document.querySelector("#dashboard");
+
+const edition = document.querySelector("#edition");
+edition.addEventListener("click", () => {
+  console.table(state.categories);
+  console.table(state.works);
+});
+
+if (isUserLogged()) {
+  document.body.className = "body--isLogged";
+  dashboard.className = "dashboard";
+  loginBtnEl.innerHTML = "logout";
+} else {
+  document.body.className = "";
+  dashboard.className = "dashboard--disabled";
+  loginBtnEl.innerHTML = "login";
+}
 
 addWorks(galleryEl);
 addCategories(categoriesEl);
@@ -45,11 +67,15 @@ function worksFiltered(works, divParent) {
 async function getCategories() {
   const categories = await getFetch("categories");
 
+  state.categories = categories;
+
   return categories;
 }
 
 async function getWorks() {
   const works = await getFetch(`works`);
+
+  state.works = works;
 
   return works;
 }
@@ -83,7 +109,7 @@ async function addWorks(divParent) {
 }
 
 function createInputSubmit(id, name) {
-  const inputAttribute = {
+  const inputAttributes = {
     type: "submit",
     value: name,
     "data-category-id": id,
@@ -91,7 +117,7 @@ function createInputSubmit(id, name) {
 
   const input = document.createElement("input");
 
-  setAttributes(input, inputAttribute);
+  setAttributes(input, inputAttributes);
 
   return input;
 }

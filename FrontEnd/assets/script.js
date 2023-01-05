@@ -1,23 +1,12 @@
 const api = "http://localhost:5678/api";
 
 const loginBtnEl = document.querySelector("#loginBtn");
-const dashboard = document.querySelector('#dashboard')
-
-if (isUserLogged()) {
-  document.body.className = "body--isLogged";
-  dashboard.className = ""
-  loginBtnEl.innerHTML = "logout";
-} else {
-  document.body.className = "";
-  dashboard.className = "dashboard--disabled"
-  loginBtnEl.innerHTML = "login";
-}
 
 loginBtnEl.addEventListener("click", (e) => {
   e.preventDefault();
 
   if (isUserLogged()) {
-    sessionStorage.removeItem("user");
+    deleteUserLoginSessionStorage()
     location.reload();
   } else {
     useLocation("./login.html");
@@ -81,6 +70,10 @@ function removeSlash(path) {
   const newPath = path.charAt(0) === "/" ? path.substring(1) : path;
 
   return newPath;
+}
+
+function deleteUserLoginSessionStorage() {
+  sessionStorage.removeItem("user");
 }
 
 function getUserLoginSessionStorage() {

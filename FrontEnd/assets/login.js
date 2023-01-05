@@ -1,8 +1,6 @@
 const loginForm = document.querySelector("#loginForm");
 
-const user = JSON.parse(sessionStorage.getItem("user"));
-
-if (user?.isLogged) useLocation("./index.html")
+if (isUserLogged()) useLocation("./index.html");
 
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -26,7 +24,7 @@ loginForm.addEventListener("submit", async (e) => {
       })
     );
 
-    useLocation("./index.html")
+    useLocation("./index.html");
   } catch (error) {
     const loginInfo = document.querySelector("#loginInfo");
 
