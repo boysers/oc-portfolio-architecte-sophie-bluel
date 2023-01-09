@@ -1,3 +1,53 @@
+if (isLogin()) {
+  const loginLink = document.querySelector(".login-link");
+  const modifyButtons = [
+    { parentSelector: "#introduction > article", position: "afterbegin" },
+    { parentSelector: "#introduction > figure", position: "beforeend" },
+    { parentSelector: "#portfolio > h2", position: "beforeend" },
+  ];
+
+  loginLink.innerHTML = "logout";
+  document.body.insertAdjacentHTML(
+    "afterbegin",
+    `
+      <div id="topbar">
+        <h3><img src="./assets/icons/edit.svg"/>Mode édition</h3>
+        <button>publier les changements</button>
+      </div>`
+  );
+  modifyButtons.forEach(({ parentSelector, position }) =>
+    addModifyBtn(parentSelector, position)
+  );
+
+  const modifyButtonEls = document.querySelectorAll(".modify-btn");
+
+  // document.body.style.overflowY = "hidden"
+
+  function disconnectUser(e) {
+    e.preventDefault();
+
+    sessionStorage.removeItem("user");
+
+    loginLink.innerHTML = "login";
+
+    document
+      .querySelectorAll("#topbar, .modify-btn")
+      ?.forEach((el) => el.remove());
+
+    loginLink.removeEventListener("click", disconnectUser);
+
+    modifyButtonEls.forEach((btn) => {
+      btn.removeEventListener("click", handleClickDashboard);
+    });
+  }
+
+  loginLink.addEventListener("click", disconnectUser);
+
+  modifyButtonEls.forEach((btn) => {
+    btn.addEventListener("click", handleClickDashboard);
+  });
+}
+
 loadConfig().then(async (config) => {
   const paths = ["works", "categories"];
 
@@ -76,3 +126,22 @@ function addWorks(works, parentEl) {
   });
 }
 
+/**
+ * @param {Element} parentSelector
+ * @param {"afterbegin" | "beforeend"} position
+ * @returns void
+ */
+function addModifyBtn(parentSelector, position) {
+  document
+    .querySelector(parentSelector)
+    .insertAdjacentHTML(
+      position,
+      `<button class="modify-btn"><img src="./assets/icons/edit_light.svg"/>modifier</button>`
+    );
+}
+
+function handleClickDashboard(e) {
+  e.preventDefault();
+
+  console.log("open Dashboard");
+}
