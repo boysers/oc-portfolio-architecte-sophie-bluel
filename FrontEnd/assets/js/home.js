@@ -1,131 +1,62 @@
-const state = {
-  works: [],
-  categories: [],
-};
+loadConfig().then(async (config) => {
+  const paths = ["works", "categories"];
 
-const categoriesEl = document.querySelector(".categories");
-const galleryEl = document.querySelector(".gallery");
-
-addWorks(galleryEl);
-addCategories(categoriesEl);
-
-function worksFiltered(works, divParent) {
-  works.forEach((work) => {
-    const { title, imageUrl, categoryId } = work;
-
-    const card = createCard(title, imageUrl, categoryId);
-
-    divParent.appendChild(card);
-  });
-
-  let indexCate = 0;
-
-  categoriesEl.addEventListener("click", (e) => {
-    e.preventDefault();
-
-    const targetCateId = Number(e.target.getAttribute("data-category-id"));
-
-    if (targetCateId === indexCate) return;
-
-    const removeCards = document.querySelectorAll(`figure[data-category-id]`);
-
-    removeCards.forEach((card) => {
-      card.remove();
-    });
-
-    works
-      .filter((work) => targetCateId == 0 || targetCateId == work.categoryId)
-      .forEach((workFiltered) => {
-        const { title, imageUrl, categoryId } = workFiltered;
-
-        const card = createCard(title, imageUrl, categoryId);
-
-        divParent.appendChild(card);
-      });
-
-    indexCate = targetCateId;
-  });
-}
-
-async function getCategories() {
-  const categories = await getFetch("categories");
-
-  if (isUserLogged()) state.categories = categories;
-
-  return categories;
-}
-
-async function getWorks() {
-  const works = await getFetch(`works`);
-
-  if (isUserLogged()) state.works = works;
-
-  return works;
-}
-
-async function addCategories(divParent) {
-  try {
-    const categories = await getCategories();
-
-    divParent.appendChild(createInputSubmit(0, "Tous"));
-
-    categories.forEach((category) => {
-      const { id, name } = category;
-
-      const input = createInputSubmit(id, name);
-
-      divParent.appendChild(input);
-    });
-  } catch (error) {
-    catchError(error);
-  }
-}
-
-async function addWorks(divParent) {
-  try {
-    const works = await getWorks();
-
-    worksFiltered(works, divParent);
-  } catch (error) {
-    catchError(error);
-  }
-}
-
-function createInputSubmit(id, name) {
-  const inputAttributes = {
-    type: "submit",
-    value: name,
-    "data-category-id": id,
-  };
-
-  const input = document.createElement("input");
-
-  setAttributes(input, inputAttributes);
-
-  return input;
-}
-
-function createCard(title, imageUrl, categoryId) {
-  const imgAttributes = {
-    crossorigin: "anonymous",
-    src: imageUrl,
-    alt: title,
-  };
-
-  const [img, figcaption, figure] = createElements(
-    "img",
-    "figcaption",
-    "figure"
+  const [listWork, listCategory] = await Promise.all(
+    paths.map((path) =>
+      fetch(`${config.api}/${path}`).then((res) => res.json())
+    )
   );
 
-  setAttributes(img, imgAttributes);
+  const gallery = document.querySelector(".gallery");
+  const filter = document.querySelector(".filter");
 
-  figcaption.innerText = title;
+  filter.innerHTML += filterButton({ id: 0, name: "Tous" });
 
-  figure.setAttribute("data-category-id", categoryId);
+  addWorks(listWork, gallery);
 
-  figure.appendChild(img);
-  figure.appendChild(figcaption);
+  listCategory.forEach((category) => {
+    filter.innerHTML += filterButton(category);
+  });
 
-  return figure;
+  let preventIndexCategory = 0;
+
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const btnCategoryId = this.getAttribute("data-category-id");
+
+      if (preventIndexCategory == btnCategoryId) return;
+
+      preventIndexCategory = btnCategoryId;
+
+      gallery.innerHTML = "";
+
+      if (btnCategoryId == 0) {
+        addWorks(listWork, gallery);
+        return;
+      }
+
+      const listWorkFiltered = listWork.filter((work) =>
+        work.categoryId == btnCategoryId ? 1 : 0
+      );
+
+      addWorks(listWorkFiltered, gallery);
+    });
+  });
+});
+
+function workCard(work) {
+  return `<figure data-category-id="${work.categoryId}" data-id="${work.id}">
+            <img src="${work.imageUrl}" alt="${work.title}" crossorigin="anonymous">
+            <figcaption>${work.title}</figcaption>
+          </figure>`;
+}
+
+function filterButton(category) {
+  return `<button data-category-id="${category.id}" class="filter-btn">${category.name}</button>`;
+}
+
+function addWorks(works, parentEl) {
+  works.forEach((work) => {
+    parentEl.innerHTML += workCard(work);
+  });
 }
