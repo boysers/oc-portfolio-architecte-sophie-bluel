@@ -7,7 +7,7 @@
 - [x] Étape 1.1 : Récupération des travaux depuis le back-end
 - [x] Étape 1.2 : Réalisation du filtre des travaux
 - [ ] Étape 2 : Codez la page de connexion
-- [ ] Étape 2.1 : Intégration du design de la page de formulaire
+- [x] Étape 2.1 : Intégration du design de la page de formulaire
 - [ ] Étape 2.2 : Authentification de l’utilisateur
 - [ ] Étape 3 : Ajoutez la moda
 - [ ] Étape 3.1 : Ajout de la fenêtre modale
