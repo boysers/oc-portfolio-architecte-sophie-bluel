@@ -187,6 +187,49 @@ footer nav ul {
 }
 
 /* Nouveau style */
+header a {
+	text-decoration: none;
+	color: initial
+}
+header .active {
+	font-weight: 600;
+}
+
+/* Login Page*/
+#login {
+	width: 50%;
+	margin: 16vh auto;
+}
+#login > * {
+	text-align: center;
+
+}
+#login h2{
+	margin-bottom: 20px;
+}
+#login form {
+	text-align: left;
+	margin-top:30px;
+	display: flex;
+	flex-direction: column;
+}
+
+#login input {
+	height: 50px;
+	font-size: 1.2em;
+	border: none;
+	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
+}
+#login label {
+	margin: 2em 0 1em 0;
+}
+#login a {
+	color: #3D3D3D;
+	text-align: center;
+	font-weight: 500;
+}
+
+/* Home Page */
 #errorProjectMessage {
 	color: rgb(252, 15, 47);
 	font-size: 24px;
@@ -203,13 +246,18 @@ footer nav ul {
 #portfolio .filter-btn {
 	font-family: "Syne", sans-serif;
 	border: none;
-	color: #FFFFFF;
+	border: #1D6154 1px solid;
+	color: #1D6154;
+	background-color: #FFFFFF;
 	font-weight: 700;
 	font-size: 16px;
-	background-color: #1D6154;
 	cursor: pointer;
 	border-radius: 60px;
 	margin: 0 5px;
 	padding: 9px;
 	min-width: 100px;
+}
+#portfolio .filter-btn.active {
+	color: #FFFFFF;
+	background-color: #1D6154;
 }
