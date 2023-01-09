@@ -1,3 +1,5 @@
+let isModalOpen = false;
+
 if (isLogin()) {
   const loginLink = document.querySelector(".login-link");
   const modifyButtons = [
@@ -7,6 +9,8 @@ if (isLogin()) {
   ];
 
   loginLink.innerHTML = "logout";
+  document.body.style.paddingTop = "60px";
+  //Topbar
   document.body.insertAdjacentHTML(
     "afterbegin",
     `
@@ -21,14 +25,13 @@ if (isLogin()) {
 
   const modifyButtonEls = document.querySelectorAll(".modify-btn");
 
-  // document.body.style.overflowY = "hidden"
-
   function disconnectUser(e) {
     e.preventDefault();
 
     sessionStorage.removeItem("user");
 
     loginLink.innerHTML = "login";
+    document.body.removeAttribute("style");
 
     document
       .querySelectorAll("#topbar, .modify-btn")
@@ -143,5 +146,13 @@ function addModifyBtn(parentSelector, position) {
 function handleClickDashboard(e) {
   e.preventDefault();
 
-  console.log("open Dashboard");
+  if (isModalOpen) {
+    console.log("close Dashboard");
+    isModalOpen = false;
+    document.body.style.overflowY = "auto";
+  } else {
+    console.log("open Dashboard");
+    isModalOpen = true;
+    document.body.style.overflowY = "hidden";
+  }
 }
