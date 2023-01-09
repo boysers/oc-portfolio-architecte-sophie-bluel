@@ -54,7 +54,7 @@ loadConfig().then(async (config) => {
       });
     });
   } catch (error) {
-    gallery.innerHTML = '<p id="errorProjectMessage">Projets indisponible!</p>';
+    gallery.innerHTML = '<p class="errorMessage">Projets indisponible!</p>';
   }
 });
 

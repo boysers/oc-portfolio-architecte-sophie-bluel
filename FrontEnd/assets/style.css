@@ -189,10 +189,22 @@ footer nav ul {
 /* Nouveau style */
 header a {
 	text-decoration: none;
-	color: initial
+	color: inherit
+}
+header a:hover {
+	color: inherit
 }
 header .active {
 	font-weight: 600;
+}
+
+.errorMessage {
+	color: rgb(252, 15, 47);
+	font-size: 24px;
+	margin: 24px 0;
+	text-align: center;
+	grid-column: 1/-1;
+	line-height: 32px;
 }
 
 /* Login Page*/
@@ -228,16 +240,12 @@ header .active {
 	text-align: center;
 	font-weight: 500;
 }
+#login .errorMessage {
+	font-size: 18px;
+	margin: 12px 0;
+} 
 
 /* Home Page */
-#errorProjectMessage {
-	color: rgb(252, 15, 47);
-	font-size: 24px;
-	margin: 24px 0;
-	text-align: center;
-	grid-column: 1/-1;
-}
-
 #portfolio .filter {
 	text-align: center;
 	margin: 50px 0;
