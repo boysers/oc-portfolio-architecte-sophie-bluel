@@ -15,7 +15,7 @@ loadConfig().then(async (config) => {
 
     if (listWork instanceof Error) throw listWork;
 
-    filter.innerHTML += filterButton({ id: 0, name: "Tous" });
+    filter.innerHTML += filterButton({ id: 0, name: "Tous" }, true);
 
     addWorks(listWork, gallery);
 
@@ -33,6 +33,12 @@ loadConfig().then(async (config) => {
 
         preventIndexCategory = btnCategoryId;
 
+        document.querySelectorAll(".filter-btn").forEach((btn) => {
+          btn.classList.remove("active")
+        })
+
+        this.classList.add("active")
+
         gallery.innerHTML = "";
 
         if (btnCategoryId == 0) {
@@ -48,7 +54,7 @@ loadConfig().then(async (config) => {
       });
     });
   } catch (error) {
-    gallery.innerHTML = '<p id="errorProjectMessage">Projets indisponible!</p>'
+    gallery.innerHTML = '<p id="errorProjectMessage">Projets indisponible!</p>';
   }
 });
 
@@ -59,8 +65,9 @@ function workCard(work) {
           </figure>`;
 }
 
-function filterButton(category) {
-  return `<button data-category-id="${category.id}" class="filter-btn">${category.name}</button>`;
+function filterButton(category, isActive) {
+  const classNameActive = isActive ? " active" : "";
+  return `<button data-category-id="${category.id}" class="filter-btn${classNameActive}">${category.name}</button>`;
 }
 
 function addWorks(works, parentEl) {
