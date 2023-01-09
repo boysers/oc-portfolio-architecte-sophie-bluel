@@ -34,10 +34,10 @@ loadConfig().then(async (config) => {
         preventIndexCategory = btnCategoryId;
 
         document.querySelectorAll(".filter-btn").forEach((btn) => {
-          btn.classList.remove("active")
-        })
+          btn.classList.remove("active");
+        });
 
-        this.classList.add("active")
+        this.classList.add("active");
 
         gallery.innerHTML = "";
 
@@ -75,3 +75,4 @@ function addWorks(works, parentEl) {
     parentEl.innerHTML += workCard(work);
   });
 }
+
