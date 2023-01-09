@@ -186,3 +186,30 @@ footer nav ul {
 	margin: 2em
 }
 
+/* Nouveau style */
+#errorProjectMessage {
+	color: rgb(252, 15, 47);
+	font-size: 24px;
+	margin: 24px 0;
+	text-align: center;
+	grid-column: 1/-1;
+}
+
+#portfolio .filter {
+	text-align: center;
+	margin: 50px 0;
+}
+
+#portfolio .filter-btn {
+	font-family: "Syne", sans-serif;
+	border: none;
+	color: #FFFFFF;
+	font-weight: 700;
+	font-size: 16px;
+	background-color: #1D6154;
+	cursor: pointer;
+	border-radius: 60px;
+	margin: 0 5px;
+	padding: 9px;
+	min-width: 100px;
+}
