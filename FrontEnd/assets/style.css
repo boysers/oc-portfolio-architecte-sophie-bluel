@@ -189,8 +189,9 @@ footer nav ul {
 /* Nouveau style */
 body {
 	max-width: none;
+	position: relative;
 }
-body > *:not(#topbar) {
+body > *:not(#topbar, .modal-container) {
 	max-width: 1140px;
 }
 body > *:not(header) {
@@ -270,6 +271,107 @@ header .active {
 	width: 18px;
 }
 
+/* Modal */
+.modal-container {
+	width: 100vw;
+	height: 100vh;
+	position: fixed;
+	top: 60px;
+	left: 0;
+	z-index: 2000;
+}
+.modal-overlay {
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.3);
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.modal {
+	position: absolute;
+	top: 43%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: #ffffff;
+	padding: 50px 100px;
+	width: calc(630px - 100px);
+	border-radius: 10px;
+	text-align: center;
+}
+.modal > button {
+	position: absolute;
+	border: none;
+	top: 0;
+	cursor: pointer;
+	padding: 0;
+	background-color: transparent;
+
+}
+.modal > button.modal-close {
+	right: 0;
+	margin: 30px;
+}
+.modal > button.back-home {
+	left: 0;
+	margin: 30px;
+	visibility: hidden;
+}
+.modal > button.back-home.active {
+	visibility: visible;
+}
+.modal__title {
+	font-size: 26px;
+	font-weight: 400;
+}
+.modal__add-picture {
+	border: none;
+	min-width: 237px;
+	background-color: #1D6154;
+	color: #ffffff;
+	font-family: "Syne", sans-serif;
+	font-size: 14px;
+	font-weight: 700;
+	border-radius: 60px;
+	padding: 10px;
+	cursor: pointer;
+	margin: 16px auto;
+	display: block;
+}
+.modal__delete-galerie {
+	color: #D65353;
+	text-decoration: none;
+}
+.modal-root-galerie {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	justify-content: center;
+	align-items: center;
+	margin: 30px 0;
+	gap: 10px;
+}
+.modal-root-galerie figure {
+	position: relative;
+}
+.modal-root-galerie img:nth-child(1) {
+	position: absolute;
+	top: 0;
+	right: 0;
+	margin: 6px;
+	cursor: pointer;
+	width: 26px;
+}
+.modal-root-galerie img:nth-child(2) {
+	display: block;
+	width: 100%;
+	object-fit: cover;
+	height: auto;
+}
+.modal-root-galerie figcaption {
+	margin-top: 2px;
+	text-align: start;
+}
+
 /* Login Page */
 #login {
 	width: 50%;
@@ -288,7 +390,6 @@ header .active {
 	display: flex;
 	flex-direction: column;
 }
-
 #login input {
 	height: 50px;
 	font-size: 1.2em;
