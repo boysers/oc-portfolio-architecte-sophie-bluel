@@ -4,9 +4,9 @@ if (isLogin()) {
   document.querySelector("#loginForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    document.querySelector(".errorMessage")?.remove();
-
     if (!this.reportValidity()) return;
+
+    document.querySelector(".errorMessage")?.remove();
 
     const [email, password] = [
       ...document.querySelectorAll(
@@ -29,27 +29,35 @@ if (isLogin()) {
     }
 
     loadConfig().then(async (config) => {
-      const res = await fetch(`${config.api}/users/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json;charset=utf-8",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      try {
+        const res = await fetch(`${config.api}/users/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json;charset=utf-8",
+          },
+          body: JSON.stringify({ email, password }),
+        });
 
-      if (!res.ok) {
+        if (!res.ok) {
+          this.insertAdjacentHTML(
+            "afterbegin",
+            '<p class="errorMessage">Votre e-mail ou votre mot de passe est incorrect!</p>'
+          );
+          return;
+        }
+
+        const result = await res.json();
+
+        sessionStorage.setItem("user", JSON.stringify(result));
+
+        location.href = "./index.html";
+      } catch (error) {
+        document.querySelector(".errorMessage")?.remove();
         this.insertAdjacentHTML(
           "afterbegin",
-          '<p class="errorMessage">Votre e-mail ou votre mot de passe est incorrect!</p>'
+          '<p class="errorMessage">Authentification indisponible!</p>'
         );
-        return;
       }
-
-      const result = await res.json();
-
-      sessionStorage.setItem("user", JSON.stringify(result));
-
-      location.href = "./index.html";
     });
   });
 }

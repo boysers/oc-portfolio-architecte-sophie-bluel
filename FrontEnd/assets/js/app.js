@@ -6,10 +6,14 @@ async function loadConfig() {
   return jsonConfig;
 }
 
-function isLogin() {
-  return sessionStorage.getItem("user") ? true : false;
+function getToken() {
+  return JSON.parse(sessionStorage.getItem("user"))?.token;
 }
 
-function getToken() {
-  return JSON.parse(sessionStorage.getItem("user")).token;
+function deleteToken() {
+  sessionStorage.removeItem("user");
+}
+
+function isLogin() {
+  return getToken() ? true : false;
 }

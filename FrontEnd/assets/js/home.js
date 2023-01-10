@@ -1,61 +1,7 @@
-let isModalOpen = false;
-
-if (isLogin()) {
-  const loginLink = document.querySelector(".login-link");
-  const modifyButtons = [
-    { parentSelector: "#introduction > article", position: "afterbegin" },
-    { parentSelector: "#introduction > figure", position: "beforeend" },
-    { parentSelector: "#portfolio > h2", position: "beforeend" },
-  ];
-
-  loginLink.innerHTML = "logout";
-  document.body.style.paddingTop = "60px";
-  //Topbar
-  document.body.insertAdjacentHTML(
-    "afterbegin",
-    `
-      <div id="topbar">
-        <h3><img src="./assets/icons/edit.svg"/>Mode édition</h3>
-        <button>publier les changements</button>
-      </div>`
-  );
-  modifyButtons.forEach(({ parentSelector, position }) =>
-    addModifyBtn(parentSelector, position)
-  );
-
-  const modifyButtonEls = document.querySelectorAll(".modify-btn");
-
-  function disconnectUser(e) {
-    e.preventDefault();
-
-    sessionStorage.removeItem("user");
-
-    loginLink.innerHTML = "login";
-    document.body.removeAttribute("style");
-
-    document
-      .querySelectorAll("#topbar, .modify-btn")
-      ?.forEach((el) => el.remove());
-
-    loginLink.removeEventListener("click", disconnectUser);
-
-    modifyButtonEls.forEach((btn) => {
-      btn.removeEventListener("click", handleClickDashboard);
-    });
-  }
-
-  loginLink.addEventListener("click", disconnectUser);
-
-  modifyButtonEls.forEach((btn) => {
-    btn.addEventListener("click", handleClickDashboard);
-  });
-}
-
 loadConfig().then(async (config) => {
-  const paths = ["works", "categories"];
-
   const gallery = document.querySelector(".gallery");
-  const filter = document.querySelector(".filter");
+  const paths = ["works", "categories"];
+  let preventIndexCategory = 0;
 
   try {
     const [listWork, listCategory] = await Promise.all(
@@ -68,15 +14,82 @@ loadConfig().then(async (config) => {
 
     if (listWork instanceof Error) throw listWork;
 
-    filter.innerHTML += filterButton({ id: 0, name: "Tous" }, true);
+    addWorksCard(listWork, gallery);
+    addFilterBtnEls(listCategory, document.querySelector(".filter"));
 
-    addWorks(listWork, gallery);
+    if (isLogin()) {
+      let isOpenModal = false;
+      const modifyButtons = [
+        { parentSelector: "#introduction > article", position: "afterbegin" },
+        { parentSelector: "#introduction > figure", position: "beforeend" },
+        { parentSelector: "#portfolio > h2", position: "beforeend" },
+      ];
 
-    listCategory.forEach((category) => {
-      filter.innerHTML += filterButton(category);
-    });
+      /* HTML Elements */
+      document.querySelector(".login-link").innerHTML = "logout";
+      document.body.style.paddingTop = "60px";
+      // Topbar
+      document.body.insertAdjacentHTML(
+        "afterbegin",
+        `
+          <div id="topbar">
+            <h3><img src="./assets/icons/edit.svg"/>Mode édition</h3>
+            <button>publier les changements</button>
+          </div>`
+      );
+      // Button open modal
+      modifyButtons.forEach(({ parentSelector, position }) => {
+        document
+          .querySelector(parentSelector)
+          .insertAdjacentHTML(
+            position,
+            `<button class="modify-btn"><img src="./assets/icons/edit_light.svg"/>modifier</button>`
+          );
+      });
 
-    let preventIndexCategory = 0;
+      function handleClickDashboard(e) {
+        e.preventDefault();
+
+        if (isOpenModal) {
+          console.log("close Dashboard");
+          isOpenModal = false;
+          document.body.style.overflowY = "auto";
+        } else {
+          console.log("open Dashboard");
+          isOpenModal = true;
+          document.body.style.overflowY = "hidden";
+        }
+      }
+
+      function disconnectUser(e) {
+        e.preventDefault();
+
+        deleteToken();
+
+        document.querySelector(".login-link").innerHTML = "login";
+        document.body.removeAttribute("style");
+
+        document
+          .querySelectorAll("#topbar, .modify-btn")
+          ?.forEach((el) => el.remove());
+
+        document
+          .querySelector(".login-link")
+          .removeEventListener("click", disconnectUser);
+
+        document.querySelectorAll(".modify-btn").forEach((btn) => {
+          btn.removeEventListener("click", handleClickDashboard);
+        });
+      }
+
+      document
+        .querySelector(".login-link")
+        .addEventListener("click", disconnectUser);
+
+      document.querySelectorAll(".modify-btn").forEach((btn) => {
+        btn.addEventListener("click", handleClickDashboard);
+      });
+    }
 
     document.querySelectorAll(".filter-btn").forEach((btn) => {
       btn.addEventListener("click", function () {
@@ -95,7 +108,7 @@ loadConfig().then(async (config) => {
         gallery.innerHTML = "";
 
         if (btnCategoryId == 0) {
-          addWorks(listWork, gallery);
+          addWorksCard(listWork, gallery);
           return;
         }
 
@@ -103,7 +116,7 @@ loadConfig().then(async (config) => {
           work.categoryId == btnCategoryId ? 1 : 0
         );
 
-        addWorks(listWorkFiltered, gallery);
+        addWorksCard(listWorkFiltered, gallery);
       });
     });
   } catch (error) {
@@ -123,36 +136,15 @@ function filterButton(category, isActive) {
   return `<button data-category-id="${category.id}" class="filter-btn${classNameActive}">${category.name}</button>`;
 }
 
-function addWorks(works, parentEl) {
+function addWorksCard(works, parentEl) {
   works.forEach((work) => {
     parentEl.innerHTML += workCard(work);
   });
 }
 
-/**
- * @param {Element} parentSelector
- * @param {"afterbegin" | "beforeend"} position
- * @returns void
- */
-function addModifyBtn(parentSelector, position) {
-  document
-    .querySelector(parentSelector)
-    .insertAdjacentHTML(
-      position,
-      `<button class="modify-btn"><img src="./assets/icons/edit_light.svg"/>modifier</button>`
-    );
-}
-
-function handleClickDashboard(e) {
-  e.preventDefault();
-
-  if (isModalOpen) {
-    console.log("close Dashboard");
-    isModalOpen = false;
-    document.body.style.overflowY = "auto";
-  } else {
-    console.log("open Dashboard");
-    isModalOpen = true;
-    document.body.style.overflowY = "hidden";
-  }
+function addFilterBtnEls(listCategory, parentEl) {
+  parentEl.innerHTML += filterButton({ id: 0, name: "Tous" }, true);
+  listCategory.forEach((category) => {
+    parentEl.innerHTML += filterButton(category);
+  });
 }
