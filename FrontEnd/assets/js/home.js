@@ -1,7 +1,6 @@
 loadConfig().then(async (config) => {
   const gallery = document.querySelector(".gallery");
   const paths = ["works", "categories"];
-  let preventIndexCategory = 0;
 
   try {
     let [listWork, listCategory] = await Promise.all(
@@ -14,36 +13,9 @@ loadConfig().then(async (config) => {
 
     if (listWork instanceof Error) throw listWork;
 
-    addWorksCard(listWork, gallery);
-    addFilterBtnEls(listCategory, document.querySelector(".filter"));
-    document.querySelectorAll(".filter-btn").forEach((btn) => {
-      btn.addEventListener("click", function () {
-        const btnCategoryId = this.getAttribute("data-category-id");
+    const galleryTest = new Gallery(".gallery");
 
-        if (preventIndexCategory == btnCategoryId) return;
-
-        preventIndexCategory = btnCategoryId;
-
-        document.querySelectorAll(".filter-btn").forEach((btn) => {
-          btn.classList.remove("active");
-        });
-
-        this.classList.add("active");
-
-        gallery.innerHTML = "";
-
-        if (btnCategoryId == 0) {
-          addWorksCard(listWork, gallery);
-          return;
-        }
-
-        const listWorkFiltered = listWork.filter((work) =>
-          work.categoryId == btnCategoryId ? 1 : 0
-        );
-
-        addWorksCard(listWorkFiltered, gallery);
-      });
-    });
+    galleryTest.init(listWork, listCategory);
 
     if (isLogin()) {
       let isOpenModal = false;
@@ -100,12 +72,9 @@ loadConfig().then(async (config) => {
         deleteWorks.forEach((deleteWork, index) => {
           if (!responses[index].ok) return;
 
-          document.querySelectorAll(".gallery > figure").forEach((work) => {
-            if (work.getAttribute("data-id") == deleteWork.id) {
-              work.remove();
-              return;
-            }
-          });
+          document
+            .querySelector(`.gallery [data-id="${deleteWork.id}"]`)
+            .remove();
         });
 
         deleteWorks = [];
@@ -149,22 +118,7 @@ loadConfig().then(async (config) => {
             document
               .querySelectorAll(".js-delete-work")
               .forEach((deleteWorkEl) => {
-                deleteWorkEl.addEventListener("click", function () {
-                  const id = this.getAttribute("data-id");
-
-                  deleteWorks.push(listWork.find((work) => work.id == id));
-
-                  listWork = listWork.filter((work) => work.id != id);
-
-                  document
-                    .querySelectorAll(".modal-root-galerie > figure")
-                    .forEach((work) => {
-                      if (work.getAttribute("data-id") == id) {
-                        work.remove();
-                        return;
-                      }
-                    });
-                });
+                deleteWorkEl.addEventListener("click", deleteWorkCardAdmin);
               });
           }
 
@@ -173,15 +127,57 @@ loadConfig().then(async (config) => {
 
             function closeModal() {
               isOpenModal = false;
+
+              if (document.querySelectorAll(".js-delete-work").length > 0)
+                closeModalGallery();
+
               document.body.style.overflowY = "auto";
               document.querySelector(".modal-container")?.remove();
               btn.removeEventListener("click", closeModal);
             }
+
+            function closeModalGallery() {
+              document
+                .querySelectorAll(".js-delete-work")
+                .forEach((deleteWorkEl) => {
+                  deleteWorkEl.removeEventListener(
+                    "click",
+                    deleteWorkCardAdmin
+                  );
+                });
+            }
           });
+
+          function deleteWorkCardAdmin(e) {
+            e.preventDefault();
+
+            const id = this.getAttribute("data-id");
+
+            deleteWorks.push(listWork.find((work) => work.id == id));
+
+            listWork = listWork.filter((work) => work.id != id);
+
+            document.querySelector(`#modal-root [data-id="${id}"]`).remove();
+          }
         }
       }
 
-      function disconnectUser(e) {
+      // Add Event Publish Button
+      document
+        .querySelector("#publish")
+        .addEventListener("click", publishToApi);
+
+      // Add Event HandleClick Open Modal
+      document.querySelectorAll(".modify-btn").forEach((btn) => {
+        btn.addEventListener("click", handleClickDashboard);
+      });
+
+      // Add HTML Elements and Event Login Link
+      document
+        .querySelector(".login-link")
+        .addEventListener("click", handleDisconnectUser);
+
+      function handleDisconnectUser(e) {
         e.preventDefault();
 
         deleteToken();
@@ -200,7 +196,7 @@ loadConfig().then(async (config) => {
         // Remove Event Publish Button
         document
           .querySelector("#publish")
-          .removeEventListener("click", publishToApi);
+          ?.removeEventListener("click", publishToApi);
 
         // Remove Event HandleClick Open Modal
         document.querySelectorAll(".modify-btn").forEach((btn) => {
@@ -210,64 +206,26 @@ loadConfig().then(async (config) => {
         // Remove Event Login Link
         document
           .querySelector(".login-link")
-          .removeEventListener("click", disconnectUser);
+          .removeEventListener("click", handleDisconnectUser);
       }
 
-      // Add Event Publish Button
-      document
-        .querySelector("#publish")
-        .addEventListener("click", publishToApi);
+      function workCardAdmin(work) {
+        return `<figure data-id="${work.id}">
+                  <img title="supprimer" class="js-delete-work" data-id=${work.id} src="./assets/icons/delete.svg" alt="">
+                  <img src="${work.imageUrl}" alt="${work.title}" crossorigin="anonymous">
+                  <figcaption>editer</figcaption>
+                </figure>`;
+      }
 
-      // Add Event HandleClick Open Modal
-      document.querySelectorAll(".modify-btn").forEach((btn) => {
-        btn.addEventListener("click", handleClickDashboard);
-      });
-
-      // Add HTML Elements and Event Login Link
-      document
-        .querySelector(".login-link")
-        .addEventListener("click", disconnectUser);
+      function addWorkCardAdmin(works, parentEl) {
+        works.forEach((work) => {
+          parentEl.innerHTML += workCardAdmin(work);
+        });
+      }
     }
   } catch (error) {
+    console.warn(error);
+
     gallery.innerHTML = '<p class="errorMessage">Projets indisponible!</p>';
-  }
-
-  function workCard(work) {
-    return `<figure data-category-id="${work.categoryId}" data-id="${work.id}">
-              <img src="${work.imageUrl}" alt="${work.title}" crossorigin="anonymous">
-              <figcaption>${work.title}</figcaption>
-            </figure>`;
-  }
-
-  function addWorksCard(works, parentEl) {
-    works.forEach((work) => {
-      parentEl.innerHTML += workCard(work);
-    });
-  }
-
-  function filterButton(category, isActive) {
-    const classNameActive = isActive ? " active" : "";
-    return `<button data-category-id="${category.id}" class="filter-btn${classNameActive}">${category.name}</button>`;
-  }
-
-  function addFilterBtnEls(listCategory, parentEl) {
-    parentEl.innerHTML += filterButton({ id: 0, name: "Tous" }, true);
-    listCategory.forEach((category) => {
-      parentEl.innerHTML += filterButton(category);
-    });
-  }
-
-  function workCardAdmin(work) {
-    return `<figure data-id="${work.id}">
-              <img title="supprimer" class="js-delete-work" data-id=${work.id} src="./assets/icons/delete.svg" alt="">
-              <img src="${work.imageUrl}" alt="${work.title}" crossorigin="anonymous">
-              <figcaption>editer</figcaption>
-            </figure>`;
-  }
-
-  function addWorkCardAdmin(works, parentEl) {
-    works.forEach((work) => {
-      parentEl.innerHTML += workCardAdmin(work);
-    });
   }
 });
