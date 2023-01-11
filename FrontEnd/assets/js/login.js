@@ -4,60 +4,45 @@ if (isLogin()) {
   document.querySelector("#loginForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    if (!this.reportValidity()) return;
+  const emailEl = document.querySelector("#email");
+  const passwordEl = document.querySelector("#password");
 
-    document.querySelector(".errorMessage")?.remove();
+  const userData = {
+    email: emailEl.value,
+    password: passwordEl.value,
+  };
 
-    const [email, password] = [
-      ...document.querySelectorAll(
-        '#loginForm input:not(input[type="submit"])'
-      ),
-    ].map((input) => input.value);
+  try {
+    const response = await postFetch("/users/login", userData);
 
-    if (!email) {
-      this.insertAdjacentHTML(
-        "afterbegin",
-        `<p class="errorMessage">Saisissez votre adresse e-mail!</p>`
-      );
-      return;
-    } else if (!password) {
-      this.insertAdjacentHTML(
-        "afterbegin",
-        `<p class="errorMessage">Saisissez votre mot de passe!</p>`
-      );
-      return;
-    }
+    sessionStorage.setItem(
+      "user",
+      JSON.stringify({
+        ...response,
+        isLogged: true,
+      })
+    );
 
-    loadConfig().then(async (config) => {
-      try {
-        const res = await fetch(`${config.api}/users/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json;charset=utf-8",
-          },
-          body: JSON.stringify({ email, password }),
-        });
+    useLocation("./index.html");
+  } catch (error) {
+    const loginInfo = document.querySelector("#loginInfo");
 
-        if (!res.ok) {
-          this.insertAdjacentHTML(
-            "afterbegin",
-            '<p class="errorMessage">Votre e-mail ou votre mot de passe est incorrect!</p>'
-          );
-          return;
-        }
+    loginInfo.classList = "login__info--active";
 
-        const result = await res.json();
+    const defaultErrorMessage = "Erreur Serveur";
 
-        sessionStorage.setItem("user", JSON.stringify(result));
+    if (error instanceof Error) {
+      console.warn(error.message);
 
-        location.href = "./index.html";
-      } catch (error) {
-        document.querySelector(".errorMessage")?.remove();
-        this.insertAdjacentHTML(
-          "afterbegin",
-          '<p class="errorMessage">Authentification indisponible!</p>'
-        );
+      if (error.message == "Not Found" || error.message == "Unauthorized") {
+        loginInfo.innerHTML = "Erreur dans l’identifiant ou le mot de passe";
+      } else {
+        loginInfo.innerHTML = defaultErrorMessage;
       }
-    });
-  });
-}
+    } else {
+      console.error(error);
+
+      loginInfo.innerHTML = defaultErrorMessage;
+    }
+  }
+});

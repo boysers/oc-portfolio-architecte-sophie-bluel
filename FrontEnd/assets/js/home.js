@@ -1,231 +1,131 @@
-loadConfig().then(async (config) => {
-  const gallery = document.querySelector(".gallery");
-  const paths = ["works", "categories"];
+const state = {
+  works: [],
+  categories: [],
+};
 
+const categoriesEl = document.querySelector(".categories");
+const galleryEl = document.querySelector(".gallery");
+
+addWorks(galleryEl);
+addCategories(categoriesEl);
+
+function worksFiltered(works, divParent) {
+  works.forEach((work) => {
+    const { title, imageUrl, categoryId } = work;
+
+    const card = createCard(title, imageUrl, categoryId);
+
+    divParent.appendChild(card);
+  });
+
+  let indexCate = 0;
+
+  categoriesEl.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    const targetCateId = Number(e.target.getAttribute("data-category-id"));
+
+    if (targetCateId === indexCate) return;
+
+    const removeCards = document.querySelectorAll(`figure[data-category-id]`);
+
+    removeCards.forEach((card) => {
+      card.remove();
+    });
+
+    works
+      .filter((work) => targetCateId == 0 || targetCateId == work.categoryId)
+      .forEach((workFiltered) => {
+        const { title, imageUrl, categoryId } = workFiltered;
+
+        const card = createCard(title, imageUrl, categoryId);
+
+        divParent.appendChild(card);
+      });
+
+    indexCate = targetCateId;
+  });
+}
+
+async function getCategories() {
+  const categories = await getFetch("categories");
+
+  if (isUserLogged()) state.categories = categories;
+
+  return categories;
+}
+
+async function getWorks() {
+  const works = await getFetch(`works`);
+
+  if (isUserLogged()) state.works = works;
+
+  return works;
+}
+
+async function addCategories(divParent) {
   try {
-    let [listWork, listCategory] = await Promise.all(
-      paths.map((path) =>
-        fetch(`${config.api}/${path}`)
-          .then((res) => res.json())
-          .catch((err) => err)
-      )
-    );
+    const categories = await getCategories();
 
-    if (listWork instanceof Error) throw listWork;
+    divParent.appendChild(createInputSubmit(0, "Tous"));
 
-    const galleryTest = new Gallery(".gallery");
+    categories.forEach((category) => {
+      const { id, name } = category;
 
-    galleryTest.init(listWork, listCategory);
+      const input = createInputSubmit(id, name);
 
-    if (isLogin()) {
-      let isOpenModal = false;
-      let deleteWorks = [];
-      const modifyButtons = [
-        { parentSelector: "#introduction > article", position: "afterbegin" },
-        { parentSelector: "#introduction > figure", position: "beforeend" },
-        { parentSelector: "#portfolio > h2", position: "beforeend" },
-      ];
-
-      /* HTML Elements */
-      // Login Link
-      document.querySelector(".login-link").innerHTML = "logout";
-      // Body
-      document.body.style.paddingTop = "60px";
-      // Topbar
-      document.body.insertAdjacentHTML(
-        "afterbegin",
-        `
-          <div id="topbar">
-            <h3><img src="./assets/icons/edit.svg"/>Mode édition</h3>
-            <button id="publish">publier les changements</button>
-          </div>`
-      );
-      // Button open modal
-      modifyButtons.forEach(({ parentSelector, position }) => {
-        document
-          .querySelector(parentSelector)
-          .insertAdjacentHTML(
-            position,
-            `<button class="modify-btn"><img src="./assets/icons/edit_light.svg" alt="">modifier</button>`
-          );
-      });
-
-      async function publishToApi(e) {
-        e.preventDefault();
-
-        if (deleteWorks.length <= 0) return;
-
-        const responses = await Promise.all(
-          deleteWorks.map((deleteWork) =>
-            fetch(`${config.api}/works/${deleteWork.id}`, {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json;charset=utf-8",
-                Authorization: `Bearer ${getToken()}`,
-              },
-            })
-              .then((res) => res)
-              .catch((err) => err)
-          )
-        );
-
-        deleteWorks.forEach((deleteWork, index) => {
-          if (!responses[index].ok) return;
-
-          document
-            .querySelector(`.gallery [data-id="${deleteWork.id}"]`)
-            .remove();
-        });
-
-        deleteWorks = [];
-      }
-
-      function handleClickDashboard(e) {
-        e.preventDefault();
-
-        if (!isOpenModal) {
-          isOpenModal = true;
-          document.body.style.overflowY = "hidden";
-          document.body.insertAdjacentHTML(
-            "beforeend",
-            `
-              <div class="modal-container">
-                <div class="modal-overlay modal-close"></div>
-                <div class="modal">
-                  <button class="modal-close"><img src="./assets/icons/close.svg" alt=""></button>
-                  <button class="back-home"><img src="./assets/icons/back.svg" alt=""></button>
-                  <div id="modal-root"></div>
-                </div>
-              </div>`
-          );
-
-          modalGalerie();
-
-          function modalGalerie() {
-            document.querySelector("#modal-root").innerHTML = `
-              <h3 class="modal__title">Galerie photo</h3>
-              <div class="modal-root-galerie"></div>
-              <hr>
-              <button class="modal__add-picture">Ajouter une photo</button>
-              <a href="#" class="modal__delete-galerie">Supprimer la galerie</a>
-            `;
-
-            addWorkCardAdmin(
-              listWork,
-              document.querySelector(".modal-root-galerie")
-            );
-
-            document
-              .querySelectorAll(".js-delete-work")
-              .forEach((deleteWorkEl) => {
-                deleteWorkEl.addEventListener("click", deleteWorkCardAdmin);
-              });
-          }
-
-          document.querySelectorAll(".modal-close").forEach((btn) => {
-            btn.addEventListener("click", closeModal);
-
-            function closeModal() {
-              isOpenModal = false;
-
-              if (document.querySelectorAll(".js-delete-work").length > 0)
-                closeModalGallery();
-
-              document.body.style.overflowY = "auto";
-              document.querySelector(".modal-container")?.remove();
-              btn.removeEventListener("click", closeModal);
-            }
-
-            function closeModalGallery() {
-              document
-                .querySelectorAll(".js-delete-work")
-                .forEach((deleteWorkEl) => {
-                  deleteWorkEl.removeEventListener(
-                    "click",
-                    deleteWorkCardAdmin
-                  );
-                });
-            }
-          });
-
-          function deleteWorkCardAdmin(e) {
-            e.preventDefault();
-
-            const id = this.getAttribute("data-id");
-
-            deleteWorks.push(listWork.find((work) => work.id == id));
-
-            listWork = listWork.filter((work) => work.id != id);
-
-            document.querySelector(`#modal-root [data-id="${id}"]`).remove();
-          }
-        }
-      }
-
-      // Add Event Publish Button
-      document
-        .querySelector("#publish")
-        .addEventListener("click", publishToApi);
-
-      // Add Event HandleClick Open Modal
-      document.querySelectorAll(".modify-btn").forEach((btn) => {
-        btn.addEventListener("click", handleClickDashboard);
-      });
-
-      // Add HTML Elements and Event Login Link
-      document
-        .querySelector(".login-link")
-        .addEventListener("click", handleDisconnectUser);
-
-      function handleDisconnectUser(e) {
-        e.preventDefault();
-
-        deleteToken();
-
-        /* Remove HTML Elements */
-        // Login Link
-        document.querySelector(".login-link").innerHTML = "login";
-        // Body
-        document.body.removeAttribute("style");
-        // Topbar and Button open modal
-        document
-          .querySelectorAll("#topbar, .modify-btn")
-          ?.forEach((el) => el.remove());
-
-        /* EventListener */
-        // Remove Event Publish Button
-        document
-          .querySelector("#publish")
-          ?.removeEventListener("click", publishToApi);
-
-        // Remove Event HandleClick Open Modal
-        document.querySelectorAll(".modify-btn").forEach((btn) => {
-          btn.removeEventListener("click", handleClickDashboard);
-        });
-
-        // Remove Event Login Link
-        document
-          .querySelector(".login-link")
-          .removeEventListener("click", handleDisconnectUser);
-      }
-
-      function workCardAdmin(work) {
-        return `<figure data-id="${work.id}">
-                  <img title="supprimer" class="js-delete-work" data-id=${work.id} src="./assets/icons/delete.svg" alt="">
-                  <img src="${work.imageUrl}" alt="${work.title}" crossorigin="anonymous">
-                  <figcaption>editer</figcaption>
-                </figure>`;
-      }
-
-      function addWorkCardAdmin(works, parentEl) {
-        works.forEach((work) => {
-          parentEl.innerHTML += workCardAdmin(work);
-        });
-      }
-    }
+      divParent.appendChild(input);
+    });
   } catch (error) {
-    console.warn(error);
-
-    gallery.innerHTML = '<p class="errorMessage">Projets indisponible!</p>';
+    catchError(error);
   }
-});
+}
+
+async function addWorks(divParent) {
+  try {
+    const works = await getWorks();
+
+    worksFiltered(works, divParent);
+  } catch (error) {
+    catchError(error);
+  }
+}
+
+function createInputSubmit(id, name) {
+  const inputAttributes = {
+    type: "submit",
+    value: name,
+    "data-category-id": id,
+  };
+
+  const input = document.createElement("input");
+
+  setAttributes(input, inputAttributes);
+
+  return input;
+}
+
+function createCard(title, imageUrl, categoryId) {
+  const imgAttributes = {
+    crossorigin: "anonymous",
+    src: imageUrl,
+    alt: title,
+  };
+
+  const [img, figcaption, figure] = createElements(
+    "img",
+    "figcaption",
+    "figure"
+  );
+
+  setAttributes(img, imgAttributes);
+
+  figcaption.innerText = title;
+
+  figure.setAttribute("data-category-id", categoryId);
+
+  figure.appendChild(img);
+  figure.appendChild(figcaption);
+
+  return figure;
+}
