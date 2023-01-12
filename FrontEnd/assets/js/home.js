@@ -1,12 +1,14 @@
 loadConfig().then(async (config) => {
   const { api } = config;
 
-  const gallery = document.querySelector(".gallery");
-  const paths = ["works", "categories"];
+  if (!api) {
+    console.warn("api not found");
+    return;
+  }
 
   try {
     let [listWork, listCategory] = await Promise.all(
-      paths.map((path) =>
+      ["works", "categories"].map((path) =>
         fetch(`${config.api}/${path}`)
           .then((res) => res.json())
           .catch((err) => err)
@@ -15,14 +17,14 @@ loadConfig().then(async (config) => {
 
     if (listWork instanceof Error) throw listWork;
 
-    if (isLogin()) {
-      new Dashboard(".gallery", listWork, listCategory, api).initGallery();
-    } else {
-      new Gallery(".gallery", listWork, listCategory).initGallery();
-    }
-  } catch (error) {
-    console.warn(error);
+    const initValues = [".gallery", listWork, listCategory];
 
-    gallery.innerHTML = '<p class="errorMessage">Projets indisponible!</p>';
+    isLogin()
+      ? new Dashboard(...initValues, api).initGallery()
+      : new Gallery(...initValues).initGallery();
+  } catch (error) {
+    error instanceof Error ? console.warn(error.message) : console.error(error);
+    document.querySelector(".gallery").innerHTML =
+      '<p class="errorMessage">Projets indisponible!</p>';
   }
 });

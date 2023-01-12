@@ -14,7 +14,7 @@ class Dashboard extends Gallery {
   modalRemoveWorkButtons = [];
 
   constructor(selector, listWork, listCategory, api) {
-    super(selector, listWork, listCategory, api);
+    super(selector, listWork, listCategory);
 
     this.api = api;
 
