@@ -7,9 +7,11 @@ class Gallery {
    * ElementHTML Gallery
    * @param {string} selector
    */
-  constructor(selector) {
+  constructor(selector, listWork, listCategory) {
     this.gallery = document.querySelector(selector);
     this.filter = this.createFilterContainer();
+    this.listWork = listWork;
+    this.listCategory = listCategory;
 
     this.handleClickFilterWorkEls = this.handleClickFilterWorkEls.bind(this);
   }
@@ -96,14 +98,14 @@ class Gallery {
     });
   }
 
-  init(works, categories) {
+  initGallery() {
     this.insertGalleryFilter();
 
-    works.forEach((work) => this.createWorkCardEl(work));
+    this.listWork.forEach((work) => this.createWorkCardEl(work));
     this.insertGalleryWorks(this.workCardEls);
 
     this.createFilterButton({ name: "Tous", id: 0 }, true);
-    categories.forEach((category) => this.createFilterButton(category));
+    this.listCategory.forEach((category) => this.createFilterButton(category));
     this.insertFilterButton(this.filterButtonEls);
 
     this.filterButtonEls.forEach((filterBtn) => {

@@ -314,13 +314,14 @@ header .active {
   font-family: "Work Sans", sans-serif;
   margin: 0 10px;
 }
-#topbar h3 {
+#topbar > div:nth-child(1) {
   background-color: transparent;
   color: #ffffff;
   font-size: 16px;
+  display: flex;
 }
-#topbar h3 img {
-  margin-bottom: -3px;
+#topbar > div:nth-child(1) img {
+  margin-top: -3px;
   margin-right: 8px;
   width: 20px;
 }
@@ -384,7 +385,7 @@ header .active {
   padding: 0;
   background-color: transparent;
 }
-.modal > button.modal-close {
+.modal > button.close-modal {
   right: 0;
   margin: 30px;
 }
@@ -418,7 +419,7 @@ header .active {
   color: #d65353;
   text-decoration: none;
 }
-.modal-root-galerie {
+.modal-gallery-list {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   justify-content: center;
@@ -426,10 +427,10 @@ header .active {
   margin: 30px 0;
   gap: 10px;
 }
-.modal-root-galerie figure {
+.modal-gallery-list figure {
   position: relative;
 }
-.modal-root-galerie img:nth-child(1) {
+.modal-gallery-list img:nth-child(1) {
   position: absolute;
   top: 0;
   right: 0;
@@ -437,13 +438,13 @@ header .active {
   cursor: pointer;
   width: 26px;
 }
-.modal-root-galerie img:nth-child(2) {
+.modal-gallery-list img:nth-child(2) {
   display: block;
   width: 100%;
   object-fit: cover;
   height: auto;
 }
-.modal-root-galerie figcaption {
+.modal-gallery-list figcaption {
   margin-top: 2px;
   text-align: start;
 }
