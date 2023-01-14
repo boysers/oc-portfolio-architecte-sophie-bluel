@@ -19,6 +19,12 @@ class Dashboard extends Gallery {
   /** @type {HTMLButtonElement[]} */
   modalRemoveWorkButtons = [];
 
+  postWork = {
+    image: undefined,
+    title: undefined,
+    category: undefined,
+  };
+
   /**
    * @param {string} api
    */
@@ -39,6 +45,7 @@ class Dashboard extends Gallery {
     // === Modal ===
     this.modalContainer = this.createModal();
     this.closeButtons = this.modalContainer.querySelectorAll(".close-modal");
+    this.backGalleryButton = this.modalContainer.querySelector("#back");
     this.modalRoot = this.modalContainer.querySelector("#modalRoot");
 
     // Modal Gallery
@@ -46,6 +53,24 @@ class Dashboard extends Gallery {
     this.deleteGalleryButton = this.modalGallery.querySelector(
       ".modal__delete-galerie"
     );
+    this.linkToAddWorkButton = this.modalGallery.querySelector(
+      ".modal__add-picture"
+    );
+
+    // Modal AddWork
+    this.modalAddWork = this.createModalAddWork();
+    this.modalAddWorkPicture =
+      this.modalAddWork.querySelector('input[type="file"]');
+    /** @type {HTMLButtonElement} */
+    this.modalPostWorkButton =
+      this.modalAddWork.querySelector("#js-addWorkApi");
+    this.modalAddWorkForm = this.modalAddWork.querySelector("form");
+
+    const [title, category] = this.modalAddWork.querySelectorAll(
+      'input[data-type="title"], select'
+    );
+    this.modalAddWorkTitle = title;
+    this.modalAddWorkCategory = category;
 
     // Event
     this.onDisconnectUser = this.onDisconnectUser.bind(this);
@@ -53,6 +78,10 @@ class Dashboard extends Gallery {
     this.onToggleModal = this.onToggleModal.bind(this);
     this.onDeleteModalWork = this.onDeleteModalWork.bind(this);
     this.onDeleteGalleryEl = this.onDeleteGalleryEl.bind(this);
+    this.onSwitchModalPath = this.onSwitchModalPath.bind(this);
+    this.onChangeAddWorkPicture = this.onChangeAddWorkPicture.bind(this);
+    this.onChangeAddWorkInput = this.onChangeAddWorkInput.bind(this);
+    this.onPostWorkToApi = this.onPostWorkToApi.bind(this);
 
     // Init
     this.loginUser();
@@ -103,7 +132,7 @@ class Dashboard extends Gallery {
       <div class="modal-overlay close-modal"></div>
       <div class="modal">
         <button id="close" class="close-modal"><img src="./assets/icons/close.svg" alt=""></button>
-        <button id="back" class="back-home"><img src="./assets/icons/back.svg" alt=""></button>
+        <img id="back" class="back-home" src="./assets/icons/back.svg" alt="">
         <div id="modalRoot"></div>
       </div>`;
 
@@ -138,28 +167,156 @@ class Dashboard extends Gallery {
     return figure;
   }
 
+  createModalAddWork() {
+    const modalAddWork = document.createElement("div");
+    modalAddWork.id = "modalAddWork";
+    modalAddWork.style.display = "none";
+    modalAddWork.innerHTML = `
+      <h3 class="modal__title">Ajout photo</h3>
+      <form>
+        <div class="form__picture">
+          <label for="yourPicture"
+            ><img src="./assets/icons/your_img.svg" alt="votre image"
+          /></label>
+          <input
+            name="yourPicture"
+            type="file"
+            id="yourPicture"
+            accept="image/*"
+            data-type="image"
+            required
+          />
+        </div>
+
+        <label for="title">Titre</label>
+        <input data-type="title" type="text" name="title" id="title" required />
+
+        <label for="category">Catégorie</label>
+        <select data-type="category" name="categories" id="category">
+          <option value="0"></option>
+          ${this.listCategory.map(
+            (category) => `
+              <option value="${category.id}">${category.name}</option>`
+          )}
+        </select>
+
+        <hr/>
+
+        <button class="modal__postWorkButton" id="js-addWorkApi" disabled>Valider</button>
+      </form>`;
+
+    return modalAddWork;
+  }
+
+  verifPostWork() {
+    let disabled = true;
+
+    for (const key in this.postWork) {
+      if (this.postWork[key] === undefined) {
+        disabled = true;
+        break;
+      }
+      disabled = false;
+    }
+
+    this.modalPostWorkButton.disabled = disabled;
+
+    return disabled;
+  }
+
+  /**
+   * @param {string} to
+   */
+  linkPath(targetEl, to) {
+    if (
+      (to == ModalPath.ADDWORK) |
+      targetEl?.classList.contains("modal__add-picture")
+    ) {
+      this.modalPath = ModalPath.ADDWORK;
+    } else if ((to == ModalPath.GALLERY) | (targetEl?.id === "back")) {
+      this.modalPath = ModalPath.GALLERY;
+    }
+
+    this.backGalleryButton.classList.toggle("active");
+
+    if (this.modalPath === ModalPath.GALLERY) {
+      this.modalGallery.style.display = "block";
+      this.modalAddWork.style.display = "none";
+    } else {
+      this.modalGallery.style.display = "none";
+      this.modalAddWork.style.display = "block";
+    }
+  }
+
+  resetForm() {
+    this.postWork = {
+      image: undefined,
+      title: undefined,
+      category: undefined,
+    };
+  }
+
   removeModalDeleteWorks() {
     this.deleteWorks.forEach((deleteWork) => {
-      document
-        .querySelector(
-          `.modal-gallery-list > figure[data-id="${deleteWork.id}"]`
-        )
-        .remove();
+      const el = document.querySelector(
+        `.modal-gallery-list > figure[data-id="${deleteWork.id}"]`
+      );
+
+      el.removeEventListener("click", this.onDeleteModalWork);
+      el.remove();
     });
   }
 
   removeAllListenerEvents() {
-    this.publishButtonElement.removeEventListener("click", this.onPublishToApi);
+    // Modify Buttons
     this.modifyButtonElements.forEach((btn) =>
       btn.removeEventListener("click", this.onToggleModal)
     );
+
+    // TopBar
+    this.publishButtonElement.removeEventListener("click", this.onPublishToApi);
+
+    // this.modalRemoveWorkButtons.forEach((btn) =>
+    //   btn.removeEventListener("click", this.onDeleteModalWork)
+    // );
+
+    document
+      .querySelectorAll(".js-delete-work")
+      .forEach((btn) =>
+        btn.removeEventListener("click", this.onDeleteModalWork)
+      );
+
     this.closeButtons.forEach((close) =>
       close.removeEventListener("click", this.onToggleModal)
     );
-    this.modalRemoveWorkButtons.forEach((btn) =>
-      btn.removeEventListener("click", this.onDeleteModalWork)
+
+    this.deleteGalleryButton.removeEventListener(
+      "click",
+      this.onDeleteGalleryEl
     );
-    this.deleteGalleryButton.addEventListener("click", this.onDeleteGalleryEl);
+
+    this.backGalleryButton.removeEventListener("click", this.onSwitchModalPath);
+    this.linkToAddWorkButton.removeEventListener(
+      "click",
+      this.onSwitchModalPath
+    );
+
+    this.modalAddWorkPicture.removeEventListener(
+      "change",
+      this.onChangeAddWorkPicture
+    );
+
+    this.modalAddWorkTitle.removeEventListener(
+      "change",
+      this.onChangeAddWorkInput
+    );
+
+    this.modalAddWorkCategory.removeEventListener(
+      "change",
+      this.onChangeAddWorkInput
+    );
+
+    this.modalAddWorkForm.removeEventListener("submit", this.onPostWorkToApi);
   }
 
   addAllListenerEvents() {
@@ -178,18 +335,72 @@ class Dashboard extends Gallery {
     this.closeButtons.forEach((close) =>
       close.addEventListener("click", this.onToggleModal)
     );
+    this.backGalleryButton.addEventListener("click", this.onSwitchModalPath);
 
-    // Modal Gallery
     this.deleteGalleryButton.addEventListener("click", this.onDeleteGalleryEl);
+    // Modal Gallery
     this.modalRemoveWorkButtons.forEach((btn) =>
       btn.addEventListener("click", this.onDeleteModalWork)
     );
+
+    // Modal AddWork
+    this.linkToAddWorkButton.addEventListener("click", this.onSwitchModalPath);
+
+    this.modalAddWorkPicture.addEventListener(
+      "change",
+      this.onChangeAddWorkPicture
+    );
+    this.modalAddWorkTitle.addEventListener(
+      "change",
+      this.onChangeAddWorkInput
+    );
+    this.modalAddWorkCategory.addEventListener(
+      "change",
+      this.onChangeAddWorkInput
+    );
+    this.modalAddWorkForm.addEventListener("submit", this.onPostWorkToApi);
+  }
+
+  onChangeAddWorkInput(e) {
+    e.preventDefault();
+
+    const targetEl = e.target;
+
+    const dataType = targetEl.getAttribute("data-type");
+    const value = targetEl.value;
+
+    switch (dataType) {
+      case "title":
+        this.postWork.title = value ? value : undefined;
+        break;
+      case "category":
+        const id = Number(value);
+        this.postWork.category = id ? id : undefined;
+        break;
+      default:
+        return;
+    }
+
+    this.verifPostWork();
+  }
+
+  onChangeAddWorkPicture(e) {
+    const file = e.target.files[0];
+
+    this.postWork.image = file;
+
+    const blobUrl = URL.createObjectURL(file);
+
+    /**@type {HTMLImageElement} */
+    const img = this.modalAddWork.querySelector(".form__picture img");
+
+    img.src = blobUrl;
+
+    this.verifPostWork();
   }
 
   onDeleteGalleryEl(e) {
     e.preventDefault();
-
-    if (this.deleteWorks.length <= 0) return;
 
     let really = false;
 
@@ -205,8 +416,8 @@ class Dashboard extends Gallery {
 
     this.deleteWorks = this.listWork;
 
-    this.gallery.remove();
-    this.filter.remove();
+    // this.gallery.remove();
+    // this.filter.remove();
     this.removeModalDeleteWorks();
 
     this.onPublishToApi(e);
@@ -229,6 +440,14 @@ class Dashboard extends Gallery {
     this.onPublishToApi(e);
   }
 
+  onSwitchModalPath(e) {
+    e.preventDefault();
+
+    const targetEl = e.target;
+
+    this.linkPath(targetEl);
+  }
+
   onToggleModal(e) {
     e.preventDefault();
 
@@ -244,12 +463,6 @@ class Dashboard extends Gallery {
     if ((this.isOpenModal = !this.isOpenModal)) {
       document.body.style.overflowY = "hidden";
       this.modalContainer.style.display = "block";
-
-      if (this.modalPath === ModalPath.GALLERY) {
-        this.modalGallery.style.display = "block";
-      } else {
-        this.modalGallery.style.display = "none";
-      }
     } else {
       document.body.style.overflowY = "auto";
       this.modalContainer.style.display = "none";
@@ -294,6 +507,57 @@ class Dashboard extends Gallery {
     this.deleteWorks = [];
   }
 
+  async onPostWorkToApi(e) {
+    e.preventDefault();
+
+    if (this.verifPostWork()) return;
+
+    const postWork = this.postWork;
+    const formData = new FormData();
+
+    for (const name in postWork) {
+      formData.append(name, postWork[name]);
+    }
+
+    const data = await fetch(`${this.api}/works`, {
+      method: "POST",
+      headers: {
+        // "Content-Type": "multipart/form-data",
+        accept: "application/json",
+        "Access-Control-Allow-Origin": "*",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: formData,
+    })
+      .then((res) => (res.ok ? res.json() : res))
+      .catch((err) => err);
+
+    this.listWork.push(data);
+
+    this.gallery.insertAdjacentElement(
+      "beforeend",
+      this.createWorkCardEl(data)
+    );
+
+    const workCardModal = this.createWorkCardModal(data);
+
+    this.modalGalleryList.insertAdjacentElement("beforeend", workCardModal);
+
+    const deleteButton = workCardModal.querySelector(".js-delete-work");
+
+    deleteButton.addEventListener("click", this.onDeleteModalWork);
+
+    this.linkPath(null, ModalPath.GALLERY);
+
+    this.modalAddWorkForm.reset();
+
+    this.modalAddWork.querySelector(".form__picture img").src =
+      "./assets/icons/your_img.svg";
+
+    this.resetForm();
+    this.verifPostWork();
+  }
+
   onDisconnectUser(e) {
     e.preventDefault();
 
@@ -313,6 +577,7 @@ class Dashboard extends Gallery {
     document.body.style.paddingTop = "60px";
 
     this.modalRoot.insertAdjacentElement("beforeend", this.modalGallery);
+    this.modalRoot.insertAdjacentElement("beforeend", this.modalAddWork);
 
     this.modalGalleryList = this.modalGallery.querySelector(
       ".modal-gallery-list"

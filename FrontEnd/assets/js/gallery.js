@@ -25,10 +25,10 @@ class Gallery {
   /** @type {HTMLButtonElement[]} */
   filterButtonEls = [];
 
-  /** @type {HTMLDivElement} */
+  /** @type {HTMLDivElement | null} */
   gallery = null;
 
-  /** @type {HTMLDivElement} */
+  /** @type {HTMLDivElement | null} */
   filter = null;
 
   /**
@@ -40,7 +40,7 @@ class Gallery {
     this.listCategory = listCategory;
 
     /** @function handleClickFilterWorkEls */
-    this.handleClickFilterWorkEls = this.onFilterWorkEls.bind(this);
+    this.onFilterWorkEls = this.onFilterWorkEls.bind(this);
   }
 
   createFilterContainer() {
@@ -75,6 +75,8 @@ class Gallery {
       <figcaption>${work.title}</figcaption>`;
 
     this.workCardEls.push(workCardEl);
+
+    return workCardEl
   }
 
   insertGalleryWorks(workEls) {

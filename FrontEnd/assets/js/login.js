@@ -50,7 +50,7 @@ if (isLogin()) {
 
         sessionStorage.setItem("user", JSON.stringify(result));
 
-        location.href = "./index.html";
+        location.href = "../";
       } catch (error) {
         document.querySelector(".errorMessage")?.remove();
         this.insertAdjacentHTML(

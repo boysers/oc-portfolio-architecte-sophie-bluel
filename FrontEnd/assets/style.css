@@ -376,7 +376,8 @@ header .active {
   width: 100vw;
   height: 100vh;
   position: fixed;
-  top: 60px;
+  /* top: 60px; */
+  top: 0;
   left: 0;
   z-index: 2000;
 }
@@ -390,16 +391,21 @@ header .active {
 }
 .modal {
   position: absolute;
-  top: 43%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+
   background-color: #ffffff;
   padding: 50px 100px;
   width: calc(630px - 100px);
   border-radius: 10px;
   text-align: center;
+
+  max-height: calc(100% - 60px);
+  overflow-y: auto;
 }
-.modal > button {
+.modal > button.close-modal,
+.modal > img.back-home {
   position: absolute;
   border: none;
   top: 0;
@@ -411,12 +417,12 @@ header .active {
   right: 0;
   margin: 30px;
 }
-.modal > button.back-home {
+.modal > img.back-home {
   left: 0;
   margin: 30px;
   visibility: hidden;
 }
-.modal > button.back-home.active {
+.modal > img.back-home.active {
   visibility: visible;
 }
 .modal__title {
@@ -469,6 +475,70 @@ header .active {
 .modal-gallery-list figcaption {
   margin-top: 2px;
   text-align: start;
+}
+
+#modalAddWork .form__picture {
+  width: auto;
+  height: 180px;
+  background-color: #e8f1f6;
+  cursor: pointer !important;
+}
+#modalAddWork .form__picture label {
+  cursor: pointer !important;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#modalAddWork .form__picture img {
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+#modalAddWork .form__picture input[type="file"] {
+  display: none;
+}
+#modalAddWork > * {
+  text-align: center;
+}
+#modalAddWork form {
+  text-align: left;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+}
+#modalAddWork input,
+#modalAddWork select {
+  height: 50px;
+  font-size: 1.2em;
+  border: none;
+  box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
+}
+#modalAddWork form > label {
+  margin: 2em 0 1em 0;
+}
+#modalAddWork hr {
+  margin: 2.6em 0;
+}
+#modalAddWork button {
+  font-family: "Syne";
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  background-color: #1d6154;
+  margin: 0 auto;
+  border-radius: 60px;
+  padding: 10px;
+  min-width: 237px;
+  cursor: pointer;
+  border: none;
+}
+#modalAddWork button:disabled {
+  color: white;
+  background-color: #a7a7a7;
+  cursor: not-allowed;
 }
 
 /* Login Page */
