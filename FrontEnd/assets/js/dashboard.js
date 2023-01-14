@@ -1,39 +1,60 @@
+"use strict";
 const ModalPath = {
   GALLERY: "gallery",
   ADDWORK: "addwork",
 };
+Object.freeze(ModalPath);
 
 class Dashboard extends Gallery {
   isOpenModal = false;
-  deleteWorks = [];
-  modifyBtnEls = [];
 
   modalPath = ModalPath.GALLERY;
 
-  modalGalleryList = undefined;
+  /** @type {Work[]} */
+  deleteWorks = [];
+
+  /** @type {HTMLElement | null}  */
+  modalGalleryList = null;
+
+  /** @type {HTMLButtonElement[]} */
   modalRemoveWorkButtons = [];
 
-  constructor(selector, listWork, listCategory, api) {
-    super(selector, listWork, listCategory);
+  /**
+   * @param {string} api
+   */
+  constructor(listWork, listCategory, api) {
+    super(listWork, listCategory);
 
+    /** @type {string} */
     this.api = api;
 
-    this.loginLinkEl = document.querySelector(".login-link");
-
-    const { topbar, publishBtnEl } = this.createTopbar();
+    // Topbar
+    const { topbar, publishButtonElement } = this.createTopbar();
     this.topbar = topbar;
-    this.publishBtnEl = publishBtnEl;
+    this.publishButtonElement = publishButtonElement;
 
+    // Modify Buttons
+    this.modifyButtonElements = this.createModifyButtons();
+
+    // === Modal ===
     this.modalContainer = this.createModal();
-    this.closeButtons = document.querySelectorAll(".close-modal");
-    this.modalRoot = document.querySelector("#modalRoot");
-    this.modalGallery = this.createModalGallery();
+    this.closeButtons = this.modalContainer.querySelectorAll(".close-modal");
+    this.modalRoot = this.modalContainer.querySelector("#modalRoot");
 
+    // Modal Gallery
+    this.modalGallery = this.createModalGallery();
+    this.deleteGalleryButton = this.modalGallery.querySelector(
+      ".modal__delete-galerie"
+    );
+
+    // Event
     this.onDisconnectUser = this.onDisconnectUser.bind(this);
     this.onPublishToApi = this.onPublishToApi.bind(this);
     this.onToggleModal = this.onToggleModal.bind(this);
     this.onDeleteModalWork = this.onDeleteModalWork.bind(this);
+    this.onDeleteGalleryEl = this.onDeleteGalleryEl.bind(this);
 
+    // Init
     this.loginUser();
   }
 
@@ -45,12 +66,12 @@ class Dashboard extends Gallery {
                           <h3>Mode édition</h3>
                         </div>`;
 
-    const publishBtnEl = document.createElement("button");
-    publishBtnEl.innerText = "publier les changements";
+    const publishButtonElement = document.createElement("button");
+    publishButtonElement.innerText = "publier les changements";
 
-    topbar.insertAdjacentElement("beforeend", publishBtnEl);
+    topbar.insertAdjacentElement("beforeend", publishButtonElement);
 
-    return { topbar, publishBtnEl };
+    return { topbar, publishButtonElement };
   }
 
   createModifyButtons() {
@@ -60,16 +81,16 @@ class Dashboard extends Gallery {
       { parentSelector: "#portfolio > h2", position: "beforeend" },
     ];
 
-    modifyButtons.forEach(({ parentSelector, position }) => {
+    return modifyButtons.map(({ parentSelector, position }) => {
       const button = document.createElement("button");
       button.classList.add("modify-btn");
       button.innerHTML = `<img src="./assets/icons/edit_light.svg" alt="">modifier`;
 
-      this.modifyBtnEls.push(button);
-
       document
         .querySelector(parentSelector)
         .insertAdjacentElement(position, button);
+
+      return button;
     });
   }
 
@@ -117,21 +138,108 @@ class Dashboard extends Gallery {
     return figure;
   }
 
+  removeModalDeleteWorks() {
+    this.deleteWorks.forEach((deleteWork) => {
+      document
+        .querySelector(
+          `.modal-gallery-list > figure[data-id="${deleteWork.id}"]`
+        )
+        .remove();
+    });
+  }
+
+  removeAllListenerEvents() {
+    this.publishButtonElement.removeEventListener("click", this.onPublishToApi);
+    this.modifyButtonElements.forEach((btn) =>
+      btn.removeEventListener("click", this.onToggleModal)
+    );
+    this.closeButtons.forEach((close) =>
+      close.removeEventListener("click", this.onToggleModal)
+    );
+    this.modalRemoveWorkButtons.forEach((btn) =>
+      btn.removeEventListener("click", this.onDeleteModalWork)
+    );
+    this.deleteGalleryButton.addEventListener("click", this.onDeleteGalleryEl);
+  }
+
+  addAllListenerEvents() {
+    // Modify buttons
+    this.modifyButtonElements.forEach((btn) =>
+      btn.addEventListener("click", this.onToggleModal)
+    );
+
+    // TopBar
+    this.publishButtonElement.addEventListener("click", this.onPublishToApi);
+
+    this.modalRemoveWorkButtons =
+      this.modalGalleryList.querySelectorAll(".js-delete-work");
+
+    // === Modal ===
+    this.closeButtons.forEach((close) =>
+      close.addEventListener("click", this.onToggleModal)
+    );
+
+    // Modal Gallery
+    this.deleteGalleryButton.addEventListener("click", this.onDeleteGalleryEl);
+    this.modalRemoveWorkButtons.forEach((btn) =>
+      btn.addEventListener("click", this.onDeleteModalWork)
+    );
+  }
+
+  onDeleteGalleryEl(e) {
+    e.preventDefault();
+
+    if (this.deleteWorks.length <= 0) return;
+
+    let really = false;
+
+    const isUserConfirm = confirm("Confirmer la suppression de la gallery ?");
+    if (!isUserConfirm) return;
+
+    really = confirm(
+      "Etes vous vraiment sur de vouloir supprimer TOUS vos projets ?!"
+    );
+    if (!really) return;
+
+    this.removeListenerEventFilterButton();
+
+    this.deleteWorks = this.listWork;
+
+    this.gallery.remove();
+    this.filter.remove();
+    this.removeModalDeleteWorks();
+
+    this.onPublishToApi(e);
+  }
+
   onDeleteModalWork(e) {
     e.preventDefault();
     const deleteBtn = e.target;
 
     const id = deleteBtn.getAttribute("data-id");
 
+    const isUserConfirm = confirm("Confirmer la suppression ?");
+
+    if (!isUserConfirm) return;
+
     this.deleteWorks.push(this.listWork.find((work) => work.id == id));
 
-    document
-      .querySelector(`.modal-gallery-list > figure[data-id="${id}"]`)
-      .remove();
+    this.removeModalDeleteWorks();
+
+    this.onPublishToApi(e);
   }
 
   onToggleModal(e) {
     e.preventDefault();
+
+    const targetEl = e.target;
+
+    if (targetEl.classList.contains("modify-btn")) {
+      scroll({
+        top: Math.floor(targetEl.offsetParent.offsetTop - 100),
+        behavior: "smooth",
+      });
+    }
 
     if ((this.isOpenModal = !this.isOpenModal)) {
       document.body.style.overflowY = "hidden";
@@ -153,7 +261,7 @@ class Dashboard extends Gallery {
 
     if (this.deleteWorks <= 0) return;
 
-    const responses = await Promise.all(
+    const datas = await Promise.all(
       this.deleteWorks.map((deleteWork) =>
         fetch(`${this.api}/works/${deleteWork.id}`, {
           method: "DELETE",
@@ -168,19 +276,19 @@ class Dashboard extends Gallery {
     );
 
     this.deleteWorks.forEach((deleteWork, index) => {
-      if (!responses[index].ok) return;
+      if (!datas[index].ok) return;
 
-      document.querySelector(`.gallery [data-id="${deleteWork.id}"]`).remove();
+      this.gallery.querySelector(`[data-id="${deleteWork.id}"]`).remove();
 
-      const workCardElsFiltered = this.workCardEls.filter(
-        (el) => el.getAttribute(`data-id`) != deleteWork.id
+      const indexWorkCardEl = this.workCardEls.findIndex(
+        (el) => el.getAttribute(`data-id`) == deleteWork.id
       );
-      this.workCardEls = workCardElsFiltered;
+      this.workCardEls.splice(indexWorkCardEl, 1);
 
-      const listWorkFiltered = this.listWork.filter(
-        (work) => work.id != deleteWork.id
+      const indexWork = this.listWork.findIndex(
+        (work) => work.id == deleteWork.id
       );
-      this.listWork = listWorkFiltered;
+      this.listWork.splice(indexWork, 1);
     });
 
     this.deleteWorks = [];
@@ -189,38 +297,26 @@ class Dashboard extends Gallery {
   onDisconnectUser(e) {
     e.preventDefault();
 
+    this.removeAllListenerEvents();
+
     deleteToken();
 
-    this.loginLinkEl.innerHTML = "login";
     document.body.style.paddingTop = "0";
 
-    this.loginLinkEl.removeEventListener("click", this.onDisconnectUser);
-    this.publishBtnEl.removeEventListener("click", this.onPublishToApi);
-    this.modifyBtnEls.forEach((btn) =>
-      btn.removeEventListener("click", this.onToggleModal)
-    );
-    this.closeButtons.forEach((close) =>
-      close.removeEventListener("click", this.onToggleModal)
-    );
-    this.modalRemoveWorkButtons.forEach((btn) =>
-      btn.removeEventListener("click", this.onDeleteModalWork)
-    );
-
-    this.modifyBtnEls.forEach((btn) => btn.remove());
+    this.modifyButtonElements.forEach((btn) => btn.remove());
     this.modalContainer.remove();
     this.topbar.remove();
   }
 
   loginUser() {
-    this.loginLinkEl.innerHTML = "logout";
     document.body.insertAdjacentElement("afterbegin", this.topbar);
     document.body.style.paddingTop = "60px";
 
-    this.createModifyButtons();
-
     this.modalRoot.insertAdjacentElement("beforeend", this.modalGallery);
 
-    this.modalGalleryList = document.querySelector(".modal-gallery-list");
+    this.modalGalleryList = this.modalGallery.querySelector(
+      ".modal-gallery-list"
+    );
 
     this.listWork.forEach((work) => {
       this.modalGalleryList.insertAdjacentElement(
@@ -229,18 +325,6 @@ class Dashboard extends Gallery {
       );
     });
 
-    this.modalRemoveWorkButtons = document.querySelectorAll(".js-delete-work");
-
-    this.loginLinkEl.addEventListener("click", this.onDisconnectUser);
-    this.publishBtnEl.addEventListener("click", this.onPublishToApi);
-    this.modifyBtnEls.forEach((btn) =>
-      btn.addEventListener("click", this.onToggleModal)
-    );
-    this.closeButtons.forEach((close) =>
-      close.addEventListener("click", this.onToggleModal)
-    );
-    this.modalRemoveWorkButtons.forEach((btn) =>
-      btn.addEventListener("click", this.onDeleteModalWork)
-    );
+    this.addAllListenerEvents();
   }
 }

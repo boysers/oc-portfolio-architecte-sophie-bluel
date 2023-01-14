@@ -7,24 +7,62 @@ loadConfig().then(async (config) => {
   }
 
   try {
-    let [listWork, listCategory] = await Promise.all(
+    const datas = await Promise.all(
       ["works", "categories"].map((path) =>
         fetch(`${config.api}/${path}`)
-          .then((res) => res.json())
+          .then((res) => (res.ok ? res.json() : res))
           .catch((err) => err)
       )
     );
 
-    if (listWork instanceof Error) throw listWork;
+    if (datas[0] instanceof Response) {
+      const { status, statusText } = datas[0];
 
-    const initValues = [".gallery", listWork, listCategory];
+      throw new ErrorJson({
+        status: status,
+        sorry: "Oups! Il y a un problème",
+        statusText: statusText,
+      });
+    }
 
-    isLogin()
-      ? new Dashboard(...initValues, api).initGallery()
-      : new Gallery(...initValues).initGallery();
+    const loginLinkEl = document.querySelector(".login-link");
+
+    isLogin() ? admin() : visitor();
+
+    function visitor() {
+      const gallery = new Gallery(...datas);
+
+      gallery.initGallerySelector(".gallery");
+    }
+
+    function admin() {
+      const dashboard = new Dashboard(...datas, api);
+
+      dashboard.initGallerySelector(".gallery");
+
+      loginLinkEl.innerHTML = "logout";
+
+      loginLinkEl.addEventListener("click", onDisconnect);
+
+      function onDisconnect(e) {
+        dashboard.onDisconnectUser(e);
+        loginLinkEl.innerHTML = "login";
+
+        loginLinkEl.removeEventListener("click", onDisconnect);
+      }
+    }
   } catch (error) {
-    error instanceof Error ? console.warn(error.message) : console.error(error);
-    document.querySelector(".gallery").innerHTML =
-      '<p class="errorMessage">Projets indisponible!</p>';
+    const gallery = document.querySelector(".gallery");
+
+    if (error instanceof ErrorJson) {
+      console.warn(error);
+
+      const errorBoundary = elementCatchError(error);
+
+      gallery.insertAdjacentElement("beforeend", errorBoundary);
+    } else {
+      console.error(error);
+      gallery.innerHTML = `<p>Projets indisponible!</p>`;
+    }
   }
 });

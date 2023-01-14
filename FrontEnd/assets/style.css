@@ -288,6 +288,28 @@ header .active {
   font-weight: 600;
 }
 
+/* Error Boundary */
+.error-container {
+  text-align: center;
+}
+.error__status,
+.error__text {
+  font-family: "Syne", sans-serif;
+  color: rgba(255, 5, 38, 0.849);
+  margin: 8px;
+}
+.error__status {
+  font-size: 36px;
+  font-weight: 700;
+}
+.error__text {
+  font-size: 18px;
+}
+.error__sorry {
+  margin: 16px;
+}
+
+/* 🟥🟥🟥 A remplacer !!! 🟥🟥🟥 */
 .errorMessage {
   color: rgb(252, 15, 47);
   font-size: 24px;
@@ -538,4 +560,7 @@ header .active {
   top: 50%;
   left: 65%;
   transform: translate(-50%, -50%);
+}
+#portfolio .error-container {
+  grid-column: 1 / -1;
 }

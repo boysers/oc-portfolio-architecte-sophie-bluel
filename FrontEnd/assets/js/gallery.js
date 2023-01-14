@@ -1,19 +1,46 @@
+/**
+ * @typedef Category
+ * @type {object}
+ * @property {number} id
+ * @property {string} name
+ */
+
+/**
+ * @typedef Work
+ * @type {object}
+ * @property {Category} category
+ * @property {number} categoryId
+ * @property {number} id
+ * @property {string} imageUrl
+ * @property {string} title
+ * @property {number} userId
+ */
+
 class Gallery {
-  workCardEls = [];
-  filterButtonEls = [];
   preventIndexCategory = 0;
 
+  /** @type {HTMLElement[]} */
+  workCardEls = [];
+
+  /** @type {HTMLButtonElement[]} */
+  filterButtonEls = [];
+
+  /** @type {HTMLDivElement} */
+  gallery = null;
+
+  /** @type {HTMLDivElement} */
+  filter = null;
+
   /**
-   * ElementHTML Gallery
-   * @param {string} selector
+   * @param {Work[]} listWork
+   * @param {Category[]} listCategory
    */
-  constructor(selector, listWork, listCategory) {
-    this.gallery = document.querySelector(selector);
-    this.filter = this.createFilterContainer();
+  constructor(listWork, listCategory) {
     this.listWork = listWork;
     this.listCategory = listCategory;
 
-    this.handleClickFilterWorkEls = this.handleClickFilterWorkEls.bind(this);
+    /** @function handleClickFilterWorkEls */
+    this.handleClickFilterWorkEls = this.onFilterWorkEls.bind(this);
   }
 
   createFilterContainer() {
@@ -60,7 +87,7 @@ class Gallery {
     this.gallery.insertAdjacentElement("beforebegin", this.filter);
   }
 
-  handleClickFilterWorkEls(e) {
+  onFilterWorkEls(e) {
     e.preventDefault();
 
     const btn = e.target;
@@ -91,14 +118,19 @@ class Gallery {
     this.insertGalleryWorks(listWorkFiltered);
   }
 
-  // Retire l'EventListener des boutons filterButtonEls
-  removeEventListenerFilterButton() {
+  removeListenerEventFilterButton() {
     this.filterButtonEls.forEach((filterBtn) => {
-      filterBtn.removeEventListener("click", this.handleClickFilterWorkEls);
+      filterBtn.removeEventListener("click", this.onFilterWorkEls);
     });
   }
 
-  initGallery() {
+  /**
+   * @param {string} selectors
+   */
+  initGallerySelector(selectors) {
+    this.gallery = document.querySelector(selectors);
+
+    this.filter = this.createFilterContainer();
     this.insertGalleryFilter();
 
     this.listWork.forEach((work) => this.createWorkCardEl(work));
@@ -109,7 +141,7 @@ class Gallery {
     this.insertFilterButton(this.filterButtonEls);
 
     this.filterButtonEls.forEach((filterBtn) => {
-      filterBtn.addEventListener("click", this.handleClickFilterWorkEls);
+      filterBtn.addEventListener("click", this.onFilterWorkEls);
     });
   }
 }
