@@ -384,6 +384,10 @@ class Dashboard extends Gallery {
   onChangeAddWorkPicture(e) {
     const file = e.target.files[0];
 
+    if (file === undefined) {
+      return;
+    }
+
     this.postWork.image = file;
 
     const blobUrl = URL.createObjectURL(file);
@@ -533,7 +537,10 @@ class Dashboard extends Gallery {
 
       const workCardEl = this.createWorkCardEl(data);
 
-      if (data.categoryId === this.indexCategoryPrevious) {
+      if (
+        data.categoryId == this.indexCategoryPrevious ||
+        this.indexCategoryPrevious == 0
+      ) {
         this.gallery.insertAdjacentElement("beforeend", workCardEl);
       }
 
