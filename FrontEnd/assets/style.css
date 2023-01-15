@@ -309,7 +309,6 @@ header .active {
   margin: 16px;
 }
 
-/* 🟥🟥🟥 A remplacer !!! 🟥🟥🟥 */
 .errorMessage {
   color: rgb(252, 15, 47);
   font-size: 24px;

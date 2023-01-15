@@ -136,7 +136,7 @@ class Dashboard extends Gallery {
         <div id="modalRoot"></div>
       </div>`;
 
-    document.body.insertAdjacentElement("beforeend", modalContainer);
+    document.body.insertAdjacentElement("afterbegin", modalContainer);
 
     return modalContainer;
   }
@@ -225,15 +225,16 @@ class Dashboard extends Gallery {
   }
 
   /**
+   * @param {HTMLElement} element
    * @param {string} to
    */
-  linkPath(targetEl, to) {
+  linkPath(element, to) {
     if (
       (to == ModalPath.ADDWORK) |
-      targetEl?.classList.contains("modal__add-picture")
+      element?.classList.contains("modal__add-picture")
     ) {
       this.modalPath = ModalPath.ADDWORK;
-    } else if ((to == ModalPath.GALLERY) | (targetEl?.id === "back")) {
+    } else if ((to == ModalPath.GALLERY) | (element?.id === "back")) {
       this.modalPath = ModalPath.GALLERY;
     }
 
@@ -412,12 +413,8 @@ class Dashboard extends Gallery {
     );
     if (!really) return;
 
-    this.removeListenerEventFilterButton();
+    this.listWork.forEach((work) => this.deleteWorks.push(work));
 
-    this.deleteWorks = this.listWork;
-
-    // this.gallery.remove();
-    // this.filter.remove();
     this.removeModalDeleteWorks();
 
     this.onPublishToApi(e);
@@ -519,6 +516,7 @@ class Dashboard extends Gallery {
       formData.append(name, postWork[name]);
     }
 
+    /** @type {Work} */
     const data = await fetch(`${this.api}/works`, {
       method: "POST",
       headers: {
@@ -534,10 +532,11 @@ class Dashboard extends Gallery {
 
     this.listWork.push(data);
 
-    this.gallery.insertAdjacentElement(
-      "beforeend",
-      this.createWorkCardEl(data)
-    );
+    const workCardEl = this.createWorkCardEl(data);
+
+    if (data.categoryId === this.indexCategoryPrevious) {
+      this.gallery.insertAdjacentElement("beforeend", workCardEl);
+    }
 
     const workCardModal = this.createWorkCardModal(data);
 

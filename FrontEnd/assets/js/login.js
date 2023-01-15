@@ -14,17 +14,21 @@ if (isLogin()) {
       ),
     ].map((input) => input.value);
 
-    if (!email) {
+    /**
+     * @param {string} errorMessage
+     */
+    const insertErrorMessageElement = (errorMessage) => {
       this.insertAdjacentHTML(
         "afterbegin",
-        `<p class="errorMessage">Saisissez votre adresse e-mail!</p>`
+        `<p class="errorMessage">${errorMessage}</p>`
       );
+    };
+
+    if (!email) {
+      insertErrorMessageElement("Saisissez votre adresse e-mail!");
       return;
     } else if (!password) {
-      this.insertAdjacentHTML(
-        "afterbegin",
-        `<p class="errorMessage">Saisissez votre mot de passe!</p>`
-      );
+      insertErrorMessageElement("Saisissez votre mot de passe!");
       return;
     }
 

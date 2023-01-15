@@ -1,5 +1,5 @@
 /**
- * @typedef Category
+indexCategoryPrevious  * @typedef Category
  * @type {object}
  * @property {number} id
  * @property {string} name
@@ -17,7 +17,7 @@
  */
 
 class Gallery {
-  preventIndexCategory = 0;
+  indexCategoryPrevious  = 0;
 
   /** @type {HTMLElement[]} */
   workCardEls = [];
@@ -95,9 +95,9 @@ class Gallery {
     const btn = e.target;
     const btnCategoryId = btn.getAttribute("data-category-id");
 
-    if (this.preventIndexCategory == btnCategoryId) return;
+    if (this.indexCategoryPrevious  == btnCategoryId) return;
 
-    this.preventIndexCategory = btnCategoryId;
+    this.indexCategoryPrevious  = btnCategoryId;
 
     this.filterButtonEls.forEach((btn) => {
       btn.classList.remove("active");
