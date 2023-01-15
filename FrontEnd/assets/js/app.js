@@ -10,12 +10,23 @@ function getToken() {
   return JSON.parse(sessionStorage.getItem("user"))?.token;
 }
 
+function setToken(data) {
+  sessionStorage.setItem("user", JSON.stringify(data));
+}
+
 function deleteToken() {
   sessionStorage.removeItem("user");
 }
 
 function isLogin() {
   return getToken() ? true : false;
+}
+
+/**
+ * @param {string} to
+ */
+function locationTo(to) {
+  location.href = to;
 }
 
 function elementCatchError({ status, sorry, statusText }) {

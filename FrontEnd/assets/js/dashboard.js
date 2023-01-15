@@ -491,7 +491,7 @@ class Dashboard extends Gallery {
     this.deleteWorks.forEach((deleteWork, index) => {
       if (!datas[index].ok) return;
 
-      this.gallery.querySelector(`[data-id="${deleteWork.id}"]`).remove();
+      this.gallery.querySelector(`[data-id="${deleteWork.id}"]`)?.remove();
 
       const indexWorkCardEl = this.workCardEls.findIndex(
         (el) => el.getAttribute(`data-id`) == deleteWork.id

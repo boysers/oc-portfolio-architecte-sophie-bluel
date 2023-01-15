@@ -1,5 +1,5 @@
 if (isLogin()) {
-  location.href = "./index.html";
+  locationTo("../");
 } else {
   document.querySelector("#loginForm").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -38,25 +38,27 @@ if (isLogin()) {
           body: JSON.stringify({ email, password }),
         });
 
-        if (!res.ok) {
-          this.insertAdjacentHTML(
-            "afterbegin",
-            '<p class="errorMessage">Votre e-mail ou votre mot de passe est incorrect!</p>'
-          );
-          return;
+        if (res.status !== 200) {
+          const { status, statusText } = res;
+
+          throw new ErrorJson({
+            status: status,
+            sorry: "Votre e-mail ou votre mot de passe est incorrect!",
+            statusText: statusText,
+          });
         }
 
         const result = await res.json();
 
-        sessionStorage.setItem("user", JSON.stringify(result));
+        setToken(result);
 
-        location.href = "../";
+        locationTo("../");
       } catch (error) {
-        document.querySelector(".errorMessage")?.remove();
-        this.insertAdjacentHTML(
-          "afterbegin",
-          '<p class="errorMessage">Authentification indisponible!</p>'
-        );
+        document.querySelector(".error-container")?.remove();
+
+        const errorBoundary = elementCatchError(error);
+
+        this.insertAdjacentElement("afterbegin", errorBoundary);
       }
     });
   });
