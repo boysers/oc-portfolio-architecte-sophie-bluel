@@ -363,7 +363,6 @@ header .active {
   background-color: transparent;
   padding: 0;
   gap: 6px;
-
   cursor: pointer;
 }
 .modify-btn img {
@@ -375,7 +374,6 @@ header .active {
   width: 100vw;
   height: 100vh;
   position: fixed;
-  /* top: 60px; */
   top: 0;
   left: 0;
   z-index: 2000;
@@ -393,13 +391,11 @@ header .active {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
   background-color: #ffffff;
   padding: 50px 100px;
   width: calc(630px - 100px);
   border-radius: 10px;
   text-align: center;
-
   max-height: calc(100% - 60px);
   overflow-y: auto;
 }
@@ -594,7 +590,6 @@ header .active {
 }
 #introduction > figure > img {
   width: 100%;
-  /* position: relative; */
 }
 #introduction > figure > .modify-btn {
   position: absolute;

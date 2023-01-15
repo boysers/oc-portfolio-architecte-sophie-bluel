@@ -14,6 +14,6 @@
 - [x] Étape 3.2 : Suppression de travaux existants
 - [x] Étape 3.3 : Envoi d’un nouveau projet au back-end via le formulaire de la modale
 - [x] Étape 3.4 : Traitement de la réponse de l’API pour afficher dynamiquement la nouvelle image de la modale.
-- [ ] Étape 4 : Vérifiez l’ensemble du projet et s’assurer du traitement des erreurs dans les formulaires
+- [x] Étape 4 : Vérifiez l’ensemble du projet et s’assurer du traitement des erreurs dans les formulaires
 
-Progression : 85%
+Progression : 100%
