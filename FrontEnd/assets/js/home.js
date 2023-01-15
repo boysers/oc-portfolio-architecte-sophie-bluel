@@ -42,13 +42,11 @@ loadConfig().then(async (config) => {
 
       loginLinkEl.innerHTML = "logout";
 
-      loginLinkEl.addEventListener("click", onDisconnect);
+      loginLinkEl.addEventListener("click", onDisconnect, { once: true });
 
       function onDisconnect(e) {
         dashboard.onDisconnectUser(e);
         loginLinkEl.innerHTML = "login";
-
-        loginLinkEl.removeEventListener("click", onDisconnect);
       }
     }
   } catch (error) {
