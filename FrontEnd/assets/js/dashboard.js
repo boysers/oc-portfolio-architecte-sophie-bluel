@@ -277,10 +277,6 @@ class Dashboard extends Gallery {
     // TopBar
     this.publishButtonElement.removeEventListener("click", this.onPublishToApi);
 
-    // this.modalRemoveWorkButtons.forEach((btn) =>
-    //   btn.removeEventListener("click", this.onDeleteModalWork)
-    // );
-
     document
       .querySelectorAll(".js-delete-work")
       .forEach((btn) =>
@@ -516,45 +512,59 @@ class Dashboard extends Gallery {
       formData.append(name, postWork[name]);
     }
 
-    /** @type {Work} */
-    const data = await fetch(`${this.api}/works`, {
-      method: "POST",
-      headers: {
-        // "Content-Type": "multipart/form-data",
-        accept: "application/json",
-        "Access-Control-Allow-Origin": "*",
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: formData,
-    })
-      .then((res) => (res.ok ? res.json() : res))
-      .catch((err) => err);
+    try {
+      /** @type {Work} */
+      const data = await fetch(`${this.api}/works`, {
+        method: "POST",
+        headers: {
+          // "Content-Type": "multipart/form-data",
+          accept: "application/json",
+          "Access-Control-Allow-Origin": "*",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: formData,
+      })
+        .then((res) => (res.ok ? res.json() : res))
+        .catch((err) => err);
 
-    this.listWork.push(data);
+      if (data instanceof Response) throw new ErrorJson(data);
 
-    const workCardEl = this.createWorkCardEl(data);
+      this.listWork.push(data);
 
-    if (data.categoryId === this.indexCategoryPrevious) {
-      this.gallery.insertAdjacentElement("beforeend", workCardEl);
+      const workCardEl = this.createWorkCardEl(data);
+
+      if (data.categoryId === this.indexCategoryPrevious) {
+        this.gallery.insertAdjacentElement("beforeend", workCardEl);
+      }
+
+      const workCardModal = this.createWorkCardModal(data);
+
+      this.modalGalleryList.insertAdjacentElement("beforeend", workCardModal);
+
+      const deleteButton = workCardModal.querySelector(".js-delete-work");
+
+      deleteButton.addEventListener("click", this.onDeleteModalWork);
+
+      this.linkPath(null, ModalPath.GALLERY);
+
+      this.modalAddWorkForm.reset();
+
+      this.modalAddWork.querySelector(".form__picture img").src =
+        "./assets/icons/your_img.svg";
+
+      this.resetForm();
+      this.verifPostWork();
+    } catch (error) {
+      if (error instanceof ErrorJson) {
+        console.warn(error);
+      } else {
+        console.error(error);
+      }
+
+      deleteToken();
+
+      locationTo("./login.html");
     }
-
-    const workCardModal = this.createWorkCardModal(data);
-
-    this.modalGalleryList.insertAdjacentElement("beforeend", workCardModal);
-
-    const deleteButton = workCardModal.querySelector(".js-delete-work");
-
-    deleteButton.addEventListener("click", this.onDeleteModalWork);
-
-    this.linkPath(null, ModalPath.GALLERY);
-
-    this.modalAddWorkForm.reset();
-
-    this.modalAddWork.querySelector(".form__picture img").src =
-      "./assets/icons/your_img.svg";
-
-    this.resetForm();
-    this.verifPostWork();
   }
 
   onDisconnectUser(e) {
