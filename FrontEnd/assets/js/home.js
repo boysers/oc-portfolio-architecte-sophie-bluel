@@ -3,10 +3,12 @@ loadConfig().then(async (config) => {
 
   if (!api) {
     console.warn("api not found");
+
     return;
   }
 
   try {
+    /** @type {[IWork[], ICategory[]] | [Response, Response] | [TypeError | TypeError]} */
     const datas = await Promise.all(
       ["works", "categories"].map((path) =>
         fetch(`${config.api}/${path}`)
@@ -15,11 +17,11 @@ loadConfig().then(async (config) => {
       )
     );
 
-    if (datas[0] instanceof Response) {
+    if (datas[0] instanceof Response || datas[0] instanceof TypeError) {
       const { status, statusText } = datas[0];
 
       throw new ErrorJson({
-        status: status,
+        status: status ? status : 500,
         sorry: "Oups! Il y a un problème",
         statusText: statusText,
       });
@@ -44,8 +46,12 @@ loadConfig().then(async (config) => {
 
       loginLinkEl.addEventListener("click", onDisconnect, { once: true });
 
+      /**  @param {MouseEvent} e */
       function onDisconnect(e) {
+        e.preventDefault();
+
         dashboard.onDisconnectUser(e);
+
         loginLinkEl.innerHTML = "login";
       }
     }
@@ -60,7 +66,8 @@ loadConfig().then(async (config) => {
       gallery.insertAdjacentElement("beforeend", errorBoundary);
     } else {
       console.error(error);
-      gallery.innerHTML = `<p>Projets indisponible!</p>`;
+
+      gallery.innerHTML = `<p class="error-container">Projets indisponible!</p>`;
     }
   }
 });

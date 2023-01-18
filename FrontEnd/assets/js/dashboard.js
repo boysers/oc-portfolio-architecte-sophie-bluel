@@ -1,16 +1,26 @@
 "use strict";
-const ModalPath = {
+
+/**
+ * Interface PostWork
+ * @typedef IPostWork
+ * @type {object}
+ * @property {string | undefined} image
+ * @property {string | undefined} title
+ * @property {string | undefined} category
+ */
+
+/** Enum ModalPath */
+const ModalPath = Object.freeze({
   GALLERY: "gallery",
   ADDWORK: "addwork",
-};
-Object.freeze(ModalPath);
+});
 
 class Dashboard extends Gallery {
   isOpenModal = false;
 
   modalPath = ModalPath.GALLERY;
 
-  /** @type {Work[]} */
+  /** @type {IWork[]} */
   deleteWorks = [];
 
   /** @type {HTMLElement | null}  */
@@ -19,15 +29,14 @@ class Dashboard extends Gallery {
   /** @type {HTMLButtonElement[]} */
   modalRemoveWorkButtons = [];
 
+  /** @type {IPostWork} */
   postWork = {
     image: undefined,
     title: undefined,
     category: undefined,
   };
 
-  /**
-   * @param {string} api
-   */
+  /** @param {string} api */
   constructor(listWork, listCategory, api) {
     super(listWork, listCategory);
 
@@ -125,6 +134,7 @@ class Dashboard extends Gallery {
 
   createModal() {
     const modalContainer = document.createElement("div");
+
     modalContainer.id = "modalContainer";
     modalContainer.classList.add("modal-container");
     modalContainer.style.display = "none";
@@ -155,8 +165,10 @@ class Dashboard extends Gallery {
     return modalGallery;
   }
 
+  /** @param {IWork} work */
   createWorkCardModal(work) {
     const figure = document.createElement("figure");
+
     figure.setAttribute("data-id", work.id);
     figure.innerHTML = `
       <img title="supprimer" class="js-delete-work" data-id=${work.id} src="./assets/icons/delete.svg" alt="${work.title} icon delete">
@@ -169,6 +181,7 @@ class Dashboard extends Gallery {
 
   createModalAddWork() {
     const modalAddWork = document.createElement("div");
+
     modalAddWork.id = "modalAddWork";
     modalAddWork.style.display = "none";
     modalAddWork.innerHTML = `
@@ -277,42 +290,40 @@ class Dashboard extends Gallery {
     // TopBar
     this.publishButtonElement.removeEventListener("click", this.onPublishToApi);
 
+    // Modal
+    this.closeButtons.forEach((close) =>
+      close.removeEventListener("click", this.onToggleModal)
+    );
+    this.backGalleryButton.removeEventListener("click", this.onSwitchModalPath);
+
+    // Modal Gallery
     document
       .querySelectorAll(".js-delete-work")
       .forEach((btn) =>
         btn.removeEventListener("click", this.onDeleteModalWork)
       );
-
-    this.closeButtons.forEach((close) =>
-      close.removeEventListener("click", this.onToggleModal)
-    );
-
     this.deleteGalleryButton.removeEventListener(
       "click",
       this.onDeleteGalleryEl
     );
-
-    this.backGalleryButton.removeEventListener("click", this.onSwitchModalPath);
     this.linkToAddWorkButton.removeEventListener(
       "click",
       this.onSwitchModalPath
     );
 
+    // Modal AddWork
     this.modalAddWorkPicture.removeEventListener(
       "change",
       this.onChangeAddWorkPicture
     );
-
     this.modalAddWorkTitle.removeEventListener(
       "change",
       this.onChangeAddWorkInput
     );
-
     this.modalAddWorkCategory.removeEventListener(
       "change",
       this.onChangeAddWorkInput
     );
-
     this.modalAddWorkForm.removeEventListener("submit", this.onPostWorkToApi);
   }
 
@@ -325,24 +336,23 @@ class Dashboard extends Gallery {
     // TopBar
     this.publishButtonElement.addEventListener("click", this.onPublishToApi);
 
-    this.modalRemoveWorkButtons =
-      this.modalGalleryList.querySelectorAll(".js-delete-work");
-
-    // === Modal ===
+    // Modal
     this.closeButtons.forEach((close) =>
       close.addEventListener("click", this.onToggleModal)
     );
     this.backGalleryButton.addEventListener("click", this.onSwitchModalPath);
 
-    this.deleteGalleryButton.addEventListener("click", this.onDeleteGalleryEl);
     // Modal Gallery
+    /** @type {HTMLButtonElement} */
+    this.modalRemoveWorkButtons =
+      this.modalGalleryList.querySelectorAll(".js-delete-work");
     this.modalRemoveWorkButtons.forEach((btn) =>
       btn.addEventListener("click", this.onDeleteModalWork)
     );
+    this.deleteGalleryButton.addEventListener("click", this.onDeleteGalleryEl);
 
     // Modal AddWork
     this.linkToAddWorkButton.addEventListener("click", this.onSwitchModalPath);
-
     this.modalAddWorkPicture.addEventListener(
       "change",
       this.onChangeAddWorkPicture
@@ -358,6 +368,7 @@ class Dashboard extends Gallery {
     this.modalAddWorkForm.addEventListener("submit", this.onPostWorkToApi);
   }
 
+  /** @param {Event} e */
   onChangeAddWorkInput(e) {
     e.preventDefault();
 
@@ -381,12 +392,12 @@ class Dashboard extends Gallery {
     this.verifPostWork();
   }
 
+  /** @param {Event} e */
   onChangeAddWorkPicture(e) {
+    /** @type {File} */
     const file = e.target.files[0];
 
-    if (file === undefined) {
-      return;
-    }
+    if (!(file instanceof File)) return;
 
     this.postWork.image = file;
 
@@ -400,18 +411,18 @@ class Dashboard extends Gallery {
     this.verifPostWork();
   }
 
+  /** @param {MouseEvent} e */
   onDeleteGalleryEl(e) {
     e.preventDefault();
 
-    let really = false;
+    if (!confirm("Confirmer la suppression de la galerie ?")) return;
 
-    const isUserConfirm = confirm("Confirmer la suppression de la gallery ?");
-    if (!isUserConfirm) return;
-
-    really = confirm(
-      "Etes vous vraiment sur de vouloir supprimer TOUS vos projets ?!"
-    );
-    if (!really) return;
+    if (
+      !confirm(
+        "Êtes-vous réellement sûr de vouloir supprimer TOUS vos projets ?!"
+      )
+    )
+      return;
 
     this.listWork.forEach((work) => this.deleteWorks.push(work));
 
@@ -420,6 +431,7 @@ class Dashboard extends Gallery {
     this.onPublishToApi(e);
   }
 
+  /** @param {MouseEvent} e */
   onDeleteModalWork(e) {
     e.preventDefault();
     const deleteBtn = e.target;
@@ -437,6 +449,7 @@ class Dashboard extends Gallery {
     this.onPublishToApi(e);
   }
 
+  /** @param {MouseEvent} e */
   onSwitchModalPath(e) {
     e.preventDefault();
 
@@ -445,6 +458,7 @@ class Dashboard extends Gallery {
     this.linkPath(targetEl);
   }
 
+  /** @param {MouseEvent} e */
   onToggleModal(e) {
     e.preventDefault();
 
@@ -466,6 +480,7 @@ class Dashboard extends Gallery {
     }
   }
 
+  /** @param {MouseEvent} e */
   async onPublishToApi(e) {
     e.preventDefault();
 
@@ -504,6 +519,7 @@ class Dashboard extends Gallery {
     this.deleteWorks = [];
   }
 
+  /** @param {MouseEvent} e */
   async onPostWorkToApi(e) {
     e.preventDefault();
 
@@ -517,7 +533,7 @@ class Dashboard extends Gallery {
     }
 
     try {
-      /** @type {Work} */
+      /** @type {IWork} */
       const data = await fetch(`${this.api}/works`, {
         method: "POST",
         headers: {
@@ -560,6 +576,7 @@ class Dashboard extends Gallery {
         "./assets/icons/your_img.svg";
 
       this.resetForm();
+
       this.verifPostWork();
     } catch (error) {
       if (error instanceof ErrorJson) {
@@ -574,6 +591,7 @@ class Dashboard extends Gallery {
     }
   }
 
+  /** @param {MouseEvent} e */
   onDisconnectUser(e) {
     e.preventDefault();
 
@@ -583,28 +601,32 @@ class Dashboard extends Gallery {
 
     document.body.style.paddingTop = "0";
 
-    this.modifyButtonElements.forEach((btn) => btn.remove());
-    this.modalContainer.remove();
-    this.topbar.remove();
+    this.modifyButtonElements.forEach((btn) => btn?.remove());
+
+    this.modalContainer?.remove();
+
+    this.topbar?.remove();
   }
 
   loginUser() {
     document.body.insertAdjacentElement("afterbegin", this.topbar);
+
     document.body.style.paddingTop = "60px";
 
     this.modalRoot.insertAdjacentElement("beforeend", this.modalGallery);
+
     this.modalRoot.insertAdjacentElement("beforeend", this.modalAddWork);
 
     this.modalGalleryList = this.modalGallery.querySelector(
       ".modal-gallery-list"
     );
 
-    this.listWork.forEach((work) => {
+    this.listWork.forEach((work) =>
       this.modalGalleryList.insertAdjacentElement(
         "beforeend",
         this.createWorkCardModal(work)
-      );
-    });
+      )
+    );
 
     this.addAllListenerEvents();
   }

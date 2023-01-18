@@ -1,24 +1,26 @@
 if (isLogin()) {
   locationTo("../");
 } else {
-  document.querySelector("#loginForm").addEventListener("submit", function (e) {
+  document.querySelector("#loginForm").addEventListener("submit", (e) => {
     e.preventDefault();
 
-    if (!this.reportValidity()) return;
+    /** @type {HTMLFormElement} */
+    const targetEl = e.target;
+
+    if (!targetEl.reportValidity()) return;
 
     document.querySelector(".errorMessage")?.remove();
 
+    /** @type {[string, string]} */
     const [email, password] = [
       ...document.querySelectorAll(
         '#loginForm input:not(input[type="submit"])'
       ),
-    ].map((input) => input.value);
+    ].map(({ value }) => (value ? value : ""));
 
-    /**
-     * @param {string} errorMessage
-     */
+    /** @param {string} errorMessage */
     const insertErrorMessageElement = (errorMessage) => {
-      this.insertAdjacentHTML(
+      targetEl.insertAdjacentHTML(
         "afterbegin",
         `<p class="errorMessage">${errorMessage}</p>`
       );
@@ -26,9 +28,11 @@ if (isLogin()) {
 
     if (!email) {
       insertErrorMessageElement("Saisissez votre adresse e-mail!");
+
       return;
     } else if (!password) {
       insertErrorMessageElement("Saisissez votre mot de passe!");
+
       return;
     }
 
@@ -52,17 +56,22 @@ if (isLogin()) {
           });
         }
 
+        /** @type {IUser} */
         const result = await res.json();
 
         setToken(result);
 
         locationTo("../");
       } catch (error) {
-        document.querySelector(".error-container")?.remove();
+        if (error instanceof ErrorJson) {
+          document.querySelector(".error-container")?.remove();
 
-        const errorBoundary = elementCatchError(error);
+          const errorBoundary = elementCatchError(error);
 
-        this.insertAdjacentElement("afterbegin", errorBoundary);
+          targetEl.insertAdjacentElement("afterbegin", errorBoundary);
+        } else {
+          console.log(error);
+        }
       }
     });
   });

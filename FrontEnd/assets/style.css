@@ -628,5 +628,8 @@ header .active {
   transform: translate(-50%, -50%);
 }
 #portfolio .error-container {
+  color: red;
+  font-size: 18px;
+  font-weight: 300;
   grid-column: 1 / -1;
 }
