@@ -333,11 +333,11 @@ class Dashboard extends Gallery {
       this.onChangeAddWorkPicture
     );
     this.modalAddWorkTitle.removeEventListener(
-      "change",
+      "input",
       this.onChangeAddWorkInput
     );
     this.modalAddWorkCategory.removeEventListener(
-      "change",
+      "input",
       this.onChangeAddWorkInput
     );
     this.modalAddWorkForm.removeEventListener("submit", this.onPostWorkToApi);
@@ -371,11 +371,11 @@ class Dashboard extends Gallery {
       this.onChangeAddWorkPicture
     );
     this.modalAddWorkTitle.addEventListener(
-      "change",
+      "input",
       this.onChangeAddWorkInput
     );
     this.modalAddWorkCategory.addEventListener(
-      "change",
+      "input",
       this.onChangeAddWorkInput
     );
     this.modalAddWorkForm.addEventListener("submit", this.onPostWorkToApi);
