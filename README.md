@@ -16,4 +16,11 @@
 - [x] Étape 3.4 : Traitement de la réponse de l’API pour afficher dynamiquement la nouvelle image de la modale.
 - [x] Étape 4 : Vérifiez l’ensemble du projet et s’assurer du traitement des erreurs dans les formulaires
 
+---
+
 Progression : 100%
+
+## Ressources
+
+### Découpage
+![découpage modal](./sources/decoupage_modal.jpg)
